@@ -23,7 +23,7 @@ public class AircraftLanding {
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
 	
-	public AircraftLanding(String[] schedule, int nTracks){
+	public AircraftLanding(String[] schedule, int[] capacity){
 		
 		ArrayList<int[]> planes = new ArrayList<int[]>();
 		
@@ -31,15 +31,30 @@ public class AircraftLanding {
 			String[] temp = s.split(":");
 			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
 			for(int i = 0; i < planesByTF[2]; i++){
-				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, });
+				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[r.nextInt(3)]});
 			}
 		}
 		
-		this.setnTracks(nTracks);
-		this.setnPlanes(wStart.length);
-		this.set
+		this.setnTracks(capacity.length);
+		this.setCapacity(capacity);
+		this.setnPlanes(planes.size());
+		
+		this.windowStart = new int[this.getnPlanes()];
+		this.windowDuration = new int[this.getnPlanes()];
+		this.windowEnd = new int[this.getnPlanes()];
+		this.typePlane = new int[this.getnPlanes()];
+		
+		for(int i = 0 ; i < this.getnPlanes(); i++){
+			this.windowStart[i] = planes.get(i)[0];
+			this.windowEnd[i] = planes.get(i)[1];
+			this.windowDuration[i] = this.windowEnd[i] - this.windowStart[i];
+			this.typePlane[i] = planes.get(i)[2];
+		}
+	
 	}
 	
+
+
 	public void model(Solver s){
 		
 		activityPlanes = new Task[nPlanes];
@@ -56,6 +71,14 @@ public class AircraftLanding {
 		track = VariableFactory.enumeratedArray("track of plane", nPlanes, 0,  nTracks, s);
 		
 		
+	}
+	
+	public int[] getWindowEnd() {
+		return windowEnd;
+	}
+
+	public void setWindowEnd(int[] windowEnd) {
+		this.windowEnd = windowEnd;
 	}
 		
 	public int[] getWindowStart() {

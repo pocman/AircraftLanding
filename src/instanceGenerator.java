@@ -5,10 +5,8 @@ public class instanceGenerator {
 	 * @param args
 	 */
 	public static AircraftLanding generator(){
-		AircraftLanding al = new AircraftLanding();
-		
-		al.setnTracks(5);
-		al.setCapacity(new int[]{6,5,3,2,1});
+			
+		int[] capacity = new int[]{6,5,3,2,1};
 		
 		String[] schedule = new String[]{
 		"11:12:3",
@@ -24,9 +22,8 @@ public class instanceGenerator {
 	    "21:22:1",
 	    "22:23:1"};
 		
-		for(String s : schedule){
-			
-		}
+		return new AircraftLanding(schedule, capacity);
+
 		
 		
 	}
