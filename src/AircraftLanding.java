@@ -2,8 +2,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import solver.ResolutionPolicy;
 import solver.Solver;
+import solver.constraints.Constraint;
+import solver.constraints.ICF;
 import solver.constraints.IntConstraintFactory;
+import solver.constraints.LogicalConstraintFactory;
 import solver.variables.IntVar;
 import solver.variables.Task;
 import solver.variables.VariableFactory;
@@ -25,6 +29,7 @@ public class AircraftLanding {
 	int[] capacity; //of the track
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
+	IntVar minBreak;
 	
 	//constructor for number of planes by hour and with given number of planes by type
 	//We make the hypothesis that planes are landing in the hours and taking of in the same hour
@@ -85,6 +90,19 @@ public class AircraftLanding {
 			
 		}		
 		//s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
+	}
+	
+	public void contraintePrecedence(Solver s){
+		IntVar brokenConstraint[] = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
+		for (int i = 0; i < nPlanes; i++) {
+			for (int j = 0; j < nPlanes && i!=j; j++) {
+				Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
+				LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
+																						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s)));
+			}
+		}
+		s.post(ICF.sum(brokenConstraint, minBreak));
+		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 	
 	public void prettyOutput(){
