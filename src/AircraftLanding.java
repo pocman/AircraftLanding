@@ -26,16 +26,23 @@ public class AircraftLanding {
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
 	
+	//constructor for number of planes by hour and with given number of planes by type
+	//We make the hypothesis that planes are landing in the hours and taking of in the same hour
+	//Fa = [30,60]
 	public AircraftLanding(String[] schedule, int[] capacity){
 		
-		ArrayList<int[]> planes = new ArrayList<int[]>();
-		
+		ArrayList<int[]> planes = new ArrayList<int[]>();		
 		for(String s : schedule){
 			String[] temp = s.split(":");
-			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
+			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3]), Integer.parseInt(temp[4])};
 			for(int i = 0; i < planesByTF[2]; i++){
-				//TODO find a better way to generate types of planes
-				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[r.nextInt(3)]});
+				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[0]});
+			}
+			for(int i = 0; i < planesByTF[3]; i++){
+				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[1]});
+			}
+			for(int i = 0; i < planesByTF[4]; i++){
+				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[2]});
 			}
 		}
 		
@@ -57,7 +64,6 @@ public class AircraftLanding {
 	
 	}
 	
-
 	public void model(Solver s){
 		
 		activityPlanes = new Task[nPlanes];
@@ -90,7 +96,7 @@ public class AircraftLanding {
 					ordedPlaneOnTheTrack.add(this.landing[plane].getValue(), plane);
 				}
 			}
-			//On genere l'ensemble des pas de temps d'interet
+			//On genere l'ensemble des pas de temps d'interet pour chaque piste
 			HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
 			for(int plane : ordedPlaneOnTheTrack){
 				if(interrestingPoints.containsKey(this.landing[plane].getValue())){
