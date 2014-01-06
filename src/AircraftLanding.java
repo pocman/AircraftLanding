@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import solver.Solver;
@@ -78,8 +79,56 @@ public class AircraftLanding {
 			
 		}		
 		//s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
-
-		
+	}
+	
+	public void prettyOutput(){
+		for(int t = 0 ; t < this.getnTracks(); t++){
+			//on place les avions dans l'ordre d'atterrissage
+			ArrayList<Integer> ordedPlaneOnTheTrack = new ArrayList<Integer>();
+			for(int plane = 0; plane < this.tracks[t].length; plane++){
+				if(this.tracks[t][plane].getValue() == 1){
+					ordedPlaneOnTheTrack.add(this.landing[plane].getValue(), plane);
+				}
+			}
+			//On genere l'ensemble des pas de temps d'interet
+			HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
+			for(int plane : ordedPlaneOnTheTrack){
+				if(interrestingPoints.containsKey(this.landing[plane].getValue())){
+					interrestingPoints.put(this.landing[plane].getValue(), this.typePlane[plane] + interrestingPoints.get(this.landing[plane].getValue()));
+				}
+				else{
+					interrestingPoints.put(this.landing[plane].getValue(), this.typePlane[plane]);
+				}
+				if(interrestingPoints.containsKey(this.takeOff[plane].getValue())){
+					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane] + interrestingPoints.get(this.landing[plane].getValue()));
+				}
+				else{
+					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane]);
+				}
+			}
+			System.out.println("load of track N° " + t + " : ");
+			String s = "";
+			for(int key : interrestingPoints.keySet()){
+				s = s + " " + interrestingPoints.get(key);
+			}
+			System.out.println(s);
+			System.out.println("load by plane");
+			for(int plane : ordedPlaneOnTheTrack){
+				String sPlane = "Plane N° " + plane + " : ";
+				for(int key : interrestingPoints.keySet()){
+					if(key > this.landing[plane].getValue())
+						sPlane = sPlane + "   ";
+					else if (key == this.landing[plane].getValue())
+						sPlane = sPlane + " \\ ";
+					else if(key <= this.landing[plane].getValue() && key < this.takeOff[plane].getValue())
+						sPlane = sPlane + " _ ";
+					else if(key == this.takeOff[plane].getValue())
+						sPlane = sPlane + " // ";
+					else
+						sPlane = sPlane + "   ";					
+				}
+			}			
+		}
 	}
 	
 	public int[] getWindowEnd() {
