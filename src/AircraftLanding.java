@@ -17,7 +17,8 @@ public class AircraftLanding {
 	Task[] activityPlanes;
 	int[] setOfTypes = new int[]{1,2,3};
 	Random r = new Random(42);
-	IntVar[] duration, landing, takeOff, track; //for each plane
+	IntVar[] duration, landing, takeOff; //for each plane
+	IntVar[][] tracks; //binary variable
 	int[] windowStart, windowDuration, windowEnd; //for each plane
 	int[] typePlane; //1,2 ou 3 correspondant à la capacité utilisée
 	int[] capacity; //of the track
@@ -70,16 +71,13 @@ public class AircraftLanding {
 		}
 		
 		//for each plane which track, it's on
-		track = VariableFactory.enumeratedArray("track of plane", nPlanes, 0,  nTracks, s);
-		
-		//contrainte souple de précédence entre les avions
-		
-		
+		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
+
+		//contrainte souple de précédence entre les avions		
 		for(int i = 0 ; i < this.getnTracks(); i++){
 			
-		}
-		
-	//	s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
+		}		
+		//s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
 
 		
 	}
