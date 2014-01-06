@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import solver.Solver;
+import solver.constraints.IntConstraintFactory;
 import solver.variables.IntVar;
 import solver.variables.Task;
 import solver.variables.VariableFactory;
@@ -31,6 +32,7 @@ public class AircraftLanding {
 			String[] temp = s.split(":");
 			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
 			for(int i = 0; i < planesByTF[2]; i++){
+				//TODO find a better way to generate types of planes
 				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[r.nextInt(3)]});
 			}
 		}
@@ -54,13 +56,13 @@ public class AircraftLanding {
 	}
 	
 
-
 	public void model(Solver s){
 		
 		activityPlanes = new Task[nPlanes];
 		
 		for(int i = 0; i < nPlanes; i++){
 			landing[i] = VariableFactory.bounded("landing " + i, windowStart[i], windowEnd[i], s);
+			//Constraint on the minimal duration is here
 			duration[i] = VariableFactory.bounded("duration on airport " + i , 30, windowDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("landing " + i, windowStart[i], windowEnd[i], s);
 			
@@ -70,6 +72,15 @@ public class AircraftLanding {
 		//for each plane which track, it's on
 		track = VariableFactory.enumeratedArray("track of plane", nPlanes, 0,  nTracks, s);
 		
+		//contrainte souple de précédence entre les avions
+		
+		
+		for(int i = 0 ; i < this.getnTracks(); i++){
+			
+		}
+		
+	//	s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
+
 		
 	}
 	
