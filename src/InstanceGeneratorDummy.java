@@ -30,8 +30,10 @@ public class InstanceGeneratorDummy {
 		int[] capacity = new int[]{6};
 		
 		String[] schedule = new String[]{
-		"11:12:2:1:1",
-		"12:13:0:1:1"};
+		"11:12:10:1",
+		"11:12:10:3",
+		"11:12:10:2",
+		"11:12:10:1"};
 		
 		return new AircraftLanding(schedule, capacity, true);		
 	}

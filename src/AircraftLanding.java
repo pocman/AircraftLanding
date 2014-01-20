@@ -85,8 +85,8 @@ public class AircraftLanding {
 			this.windowEnd = new int[this.getnPlanes()];
 		
 			for(int i = 0 ; i < this.getnPlanes(); i++){
-				this.windowStart[i] = planes.get(i)[0];
-				this.windowEnd[i] = planes.get(i)[1]+planes.get(i)[2];
+				this.windowStart[i] = planes.get(i)[0]*60;
+				this.windowEnd[i] = planes.get(i)[1]*60+planes.get(i)[2];
 				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
 				this.typePlane[i] = planes.get(i)[3];
 			}
