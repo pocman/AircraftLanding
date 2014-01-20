@@ -24,36 +24,54 @@ public class AircraftLanding {
 	int[] capacity; //of the track
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
+	String[] schedule;
 	
-	public AircraftLanding(String[] schedule, int[] capacity){
-		
+	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe){
+		this.schedule=schedule;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
+		if(!fenetreFixe) {
+			for(String s : schedule){
+				String[] temp = s.split(":");
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1])};
+				planes.add(planesByTF);
+			}
 		
-		for(String s : schedule){
-			String[] temp = s.split(":");
-			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
-			for(int i = 0; i < planesByTF[2]; i++){
-				//TODO find a better way to generate types of planes
-				planes.add(new int[]{planesByTF[0]*60, planesByTF[1]*60, setOfTypes[r.nextInt(3)]});
+			this.setnTracks(capacity.length);
+			this.setCapacity(capacity);
+			this.setnPlanes(planes.size());
+			this.setTypePlane(new int[this.getnPlanes()]);
+		
+			this.windowStart = new int[this.getnPlanes()];
+			this.windowDuration = new int[this.getnPlanes()];
+			this.windowEnd = new int[this.getnPlanes()];
+		
+			for(int i = 0 ; i < this.getnPlanes(); i++){
+				this.windowDuration[i] = planes.get(i)[0];
+				this.typePlane[i] = planes.get(i)[1];
 			}
 		}
+		else {
+			for(String s : schedule) {
+				String[] temp = s.split(":");
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3])};
+				planes.add(planesByTF);
+			}
+			this.setnTracks(capacity.length);
+			this.setCapacity(capacity);
+			this.setnPlanes(planes.size());
+			this.setTypePlane(new int[this.getnPlanes()]);
 		
-		this.setnTracks(capacity.length);
-		this.setCapacity(capacity);
-		this.setnPlanes(planes.size());
+			this.windowStart = new int[this.getnPlanes()];
+			this.windowDuration = new int[this.getnPlanes()];
+			this.windowEnd = new int[this.getnPlanes()];
 		
-		this.windowStart = new int[this.getnPlanes()];
-		this.windowDuration = new int[this.getnPlanes()];
-		this.windowEnd = new int[this.getnPlanes()];
-		this.typePlane = new int[this.getnPlanes()];
-		
-		for(int i = 0 ; i < this.getnPlanes(); i++){
-			this.windowStart[i] = planes.get(i)[0];
-			this.windowEnd[i] = planes.get(i)[1];
-			this.windowDuration[i] = this.windowEnd[i] - this.windowStart[i];
-			this.typePlane[i] = planes.get(i)[2];
+			for(int i = 0 ; i < this.getnPlanes(); i++){
+				this.windowStart[i] = planes.get(i)[0];
+				this.windowEnd[i] = planes.get(i)[1]+planes.get(i)[2];
+				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
+				this.typePlane[i] = planes.get(i)[3];
+			}
 		}
-	
 	}
 	
 
@@ -149,6 +167,9 @@ public class AircraftLanding {
 		this.nTracks = nTracks;
 	}
 
+	public String[] getSchedule() {
+		return schedule;
+	}
 
 	public static void main(String[] args) {
 		
