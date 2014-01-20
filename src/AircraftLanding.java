@@ -110,14 +110,14 @@ public class AircraftLanding {
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 		}
 
+		//for each plane which track, it's on
+		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
+
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i));
 			}
 		}
-
-		//for each plane which track, it's on
-		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 		//Un avion ne peut etre que sur une seule piste
