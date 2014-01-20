@@ -91,6 +91,8 @@ public class AircraftLanding {
 				this.typePlane[i] = planes.get(i)[3];
 			}
 		}
+		this.sortCapacity();
+		this.sortPlanes();
 	}
 
 	public void model(Solver s) {
