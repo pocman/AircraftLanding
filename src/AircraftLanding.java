@@ -27,7 +27,7 @@ public class AircraftLanding {
 	IntVar[] duration, landing, takeOff; //for each plane
 	IntVar[][] tracks; //binary variable
 	int[] windowStart, windowDuration, windowEnd; //for each plane
-	int[] typePlane; //1,2 ou 3 correspondant à la capacité utilisée
+	int[] typePlane; //1,2 ou 3 correspondant ï¿½ la capacitï¿½ utilisï¿½e
 	int[] capacity; //of the track
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
@@ -76,10 +76,10 @@ public class AircraftLanding {
 		activityPlanes = new Task[nPlanes];
 		
 		for(int i = 0; i < nPlanes; i++){
-			landing[i] = VariableFactory.bounded("landing " + i, windowStart[i], windowEnd[i], s);
+			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
 			//Constraint on the minimal duration is here
-			duration[i] = VariableFactory.bounded("duration on airport " + i , 30, windowDuration[i], s);
-			takeOff[i] = VariableFactory.bounded("landing " + i, windowStart[i], windowEnd[i], s);
+			duration[i] = VariableFactory.bounded("Duration on airport " + i , 30, windowDuration[i], s);
+			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 		}
@@ -96,11 +96,15 @@ public class AircraftLanding {
 		//contrainte souple de précédence entre les avions	
 		this.contraintePrecedence(s);
 		
-
-		
-		
-			
-		//s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
+		//contrainte cumulative
+		IntVar[][] heightInCumulatives = new IntVar[this.getnTracks()][this.getnPlanes()];
+		for(int u = 0; u < this.getnTracks(); u++) {
+			for(int v=0; v < this.getnPlanes(); v++) {
+				heightInCumulatives[u][v] = VariableFactory.enumerated("heightInCumulative" + u + v, 1,3,s);
+				s.post(IntConstraintFactory.times(VariableFactory.fixed(this.typePlane[v],s),this.tracks[u][v],heightInCumulatives[u][v]));
+			}
+			s.post(IntConstraintFactory.cumulative(activityPlanes, heightInCumulatives[u], VariableFactory.fixed(this.getCapacity()[u], s)));
+		}
 	}
 	
 	public void contraintePrecedence(Solver s){
@@ -144,7 +148,7 @@ public class AircraftLanding {
 					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane]);
 				}
 			}
-			System.out.println("load of track N° " + t + " : ");
+			System.out.println("load of track Nï¿½ " + t + " : ");
 			String s = "";
 			for(int key : interrestingPoints.keySet()){
 				s = s + " " + interrestingPoints.get(key);
@@ -152,7 +156,7 @@ public class AircraftLanding {
 			System.out.println(s);
 			System.out.println("load by plane");
 			for(int plane : ordedPlaneOnTheTrack){
-				String sPlane = "Plane N° " + plane + " : ";
+				String sPlane = "Plane Nï¿½ " + plane + " : ";
 				for(int key : interrestingPoints.keySet()){
 					if(key > this.landing[plane].getValue())
 						sPlane = sPlane + "   ";
