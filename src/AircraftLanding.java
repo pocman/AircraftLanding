@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -38,7 +39,7 @@ public class AircraftLanding {
 	IntVar[] duration, landing, takeOff; //for each plane
 	IntVar[][] tracks; //binary variable
 	int[] windowStart, windowDuration, windowEnd; //for each plane
-	int[] typePlane; //1,2 ou 3 correspondant ï¿½ la capacitï¿½ utilisï¿½e
+	int[] typePlane; //1,2 ou 3 correspondant a la capacite utilisee
 	int[] capacity; //of the track
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
@@ -101,13 +102,14 @@ public class AircraftLanding {
 		
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
-		
-		//Un avion ne peut être que sur une seule piste
+
+		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		//Un avion ne peut etre que sur une seule piste
 		for(int plane = 0; plane < nPlanes; plane++){
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
 		}
 
-		//contrainte souple de précédence entre les avions	
+		//contrainte souple de precedence entre les avions
 		this.contraintePrecedence(s);
 		
 		//contrainte cumulative
@@ -143,9 +145,13 @@ public class AircraftLanding {
 				ISF.inputOrder_InDomainMax(duration)));
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
+	
+	private void sortCapacity(){
+		Arrays.sort(capacity);
+		ArrayUtils.reverse(capacity);
+	}
 
 	private void sortPlanes() {
-		boolean modified = true;
 		int[] planes = new int[this.getnPlanes()];
 		int k = 0;
 		for(int s = 3; s > 0; s--) {
