@@ -109,6 +109,38 @@ public class AircraftLanding {
 		s.post(ICF.sum(brokenConstraint, minBreak));
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
+
+	private void sortPlanes() {
+		boolean modified = true;
+		int[] planes = new int[this.getnPlanes()];
+		int k = 0;
+		for(int s = 3; s > 0; s--) {
+			for(int i = 0; i < this.getnPlanes(); i++) {
+				 if(this.typePlane[i] == s) {
+					 planes[k] = i;
+					 k++;
+				 }
+			}
+		}
+		this.setNewOrder(planes);
+	}
+
+	private void setNewOrder(int[] planes) {
+		int[] oldWindowStart =	this.windowStart;
+		int[] oldWindowDuration = this.windowDuration;
+		int[] oldWindowEnd = this.windowEnd;
+		int[] oldTypePlane = this.typePlane;
+		this.windowStart = new int[this.windowStart.length];
+		this.windowDuration = new int[this.windowDuration.length];
+		this.windowEnd = new int[this.windowEnd.length];
+		this.typePlane = new int[this.typePlane.length];
+		for(int i = 0; i < this.getnPlanes(); i++) {
+			this.windowStart[i] = oldWindowStart[planes[i]];
+			this.windowDuration[i] = oldWindowDuration[planes[i]];
+			this.windowEnd[i] = oldWindowEnd[planes[i]];
+			this.typePlane[i] = oldTypePlane[planes[i]];
+		}
+	}
 	
 	public void prettyOutput(){
 		for(int t = 0 ; t < this.getnTracks(); t++){
