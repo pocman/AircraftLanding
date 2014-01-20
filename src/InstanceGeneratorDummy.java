@@ -27,13 +27,13 @@ public class InstanceGeneratorDummy {
 	
 	public static AircraftLanding generator2(){
 		
-		int[] capacity = new int[]{6};
+		int[] capacity = new int[]{6,5};
 		
 		String[] schedule = new String[]{
 		"11:12:10:1",
+		"11:12:10:3",
 		"11:12:10:1",
-		"11:12:10:1",
-		"11:12:10:1"};
+		"11:12:10:3"};
 		
 		return new AircraftLanding(schedule, capacity, true);		
 	}

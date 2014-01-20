@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 
 public class AircraftLanding {
 
@@ -44,6 +46,7 @@ public class AircraftLanding {
 	IntVar[] tracksByPlane;
 	int MAX_TIME = 60*24;
 	String[] schedule;
+	IntVar[][]  heightInCumulatives;
 	
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe){
 		this.schedule=schedule;
@@ -108,9 +111,14 @@ public class AircraftLanding {
 			//Constraint on the minimal duration is here
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, 30, windowDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
-			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks(), s);
+			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks()-1, s);
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
+			System.out.println(landing[i]);
+			System.out.println(duration[i]);
+			System.out.println(takeOff[i]);
+			System.out.println(tracksByPlane[i]);
 		}
+		
 
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
@@ -118,10 +126,13 @@ public class AircraftLanding {
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
+				System.out.print(tracks[i][j] + " ,");
 			}
+			System.out.println();
 		}
 
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		
 		//Un avion ne peut etre que sur une seule piste
 		for (int plane = 0; plane < nPlanes; plane++) {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
@@ -131,12 +142,13 @@ public class AircraftLanding {
 		this.contraintePrecedence(s);
 
 		//contrainte cumulative
-		IntVar[][] heightInCumulatives = new IntVar[this.getnTracks()][this.getnPlanes()];
+		heightInCumulatives = VF.boundedMatrix("heightInCumulative", this.getnTracks(), this.getnPlanes(), 0, this.setOfTypes[this.setOfTypes.length-1], s);
 		for (int u = 0; u < this.getnTracks(); u++) {
 			for (int v = 0; v < this.getnPlanes(); v++) {
-				heightInCumulatives[u][v] = VariableFactory.enumerated("heightInCumulative" + u + v, 1, 3, s);
 				s.post(IntConstraintFactory.times(VariableFactory.fixed(this.typePlane[v], s), this.tracks[u][v], heightInCumulatives[u][v]));
+				System.out.print(heightInCumulatives[u][v] + " ,");
 			}
+			System.out.println();
 			s.post(IntConstraintFactory.cumulative(activityPlanes, heightInCumulatives[u], VariableFactory.fixed(this.getCapacity()[u], s)));
 		}
 	}
@@ -156,11 +168,7 @@ public class AircraftLanding {
 
 	public void solve(Solver s) {
 		SMF.log(s, true, false);
-		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-				ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
-				ISF.inputOrder_InDomainMin(landing),
-				ISF.inputOrder_InDomainMax(takeOff),
-				ISF.inputOrder_InDomainMax(duration)));
+
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 
@@ -248,6 +256,7 @@ public class AircraftLanding {
 						sPlane = sPlane + " . ";
 				}
 			}
+			System.out.println();
 		}
 	}
 
@@ -355,13 +364,18 @@ public class AircraftLanding {
 	}
 
 	public void chooseStrategy(Solver s) {
+//		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+//		ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
+//		ISF.inputOrder_InDomainMin(landing),
+//		ISF.inputOrder_InDomainMax(takeOff),
+//		ISF.inputOrder_InDomainMax(duration)));
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(this.takeOff), IntStrategyFactory.inputOrder_InDomainMin(this.landing), IntStrategyFactory.inputOrder_InDomainMin(this.duration), IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)));
 	}
 
 
 	public static void main(String[] args) {
-		//AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.PETIT, 42, true);
-		AircraftLanding al = InstanceGeneratorDummy.generator2();
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 1, true);
+		//AircraftLanding al = InstanceGeneratorDummy.generator1();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy(s);
