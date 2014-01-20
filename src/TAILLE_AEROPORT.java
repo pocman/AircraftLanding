@@ -1,0 +1,4 @@
+
+public enum TAILLE_AEROPORT {
+	PETIT, MOYEN, GRAND;
+}

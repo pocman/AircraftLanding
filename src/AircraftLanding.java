@@ -41,45 +41,56 @@ public class AircraftLanding {
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
 	IntVar minBreak;
-	int MAX_TIME = 60 * 24;
 	IntVar[] tracksByPlane;
-
-	//constructor for number of planes by hour and with given number of planes by type
-	//We make the hypothesis that planes are landing in the hours and taking of in the same hour
-	//Fa = [30,60]
-	public AircraftLanding(String[] schedule, int[] capacity) {
-
+	int MAX_TIME = 60*24;
+	String[] schedule;
+	
+	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe){
+		this.schedule=schedule;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
-		for (String s : schedule) {
-			String[] temp = s.split(":");
-			int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3]), Integer.parseInt(temp[4])};
-			for (int i = 0; i < planesByTF[2]; i++) {
-				planes.add(new int[]{planesByTF[0] * 60, planesByTF[1] * 60, setOfTypes[0]});
+		if(!fenetreFixe) {
+			for(String s : schedule){
+				String[] temp = s.split(":");
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1])};
+				planes.add(planesByTF);
 			}
-			for (int i = 0; i < planesByTF[3]; i++) {
-				planes.add(new int[]{planesByTF[0] * 60, planesByTF[1] * 60, setOfTypes[1]});
-			}
-			for (int i = 0; i < planesByTF[4]; i++) {
-				planes.add(new int[]{planesByTF[0] * 60, planesByTF[1] * 60, setOfTypes[2]});
+		
+			this.setnTracks(capacity.length);
+			this.setCapacity(capacity);
+			this.setnPlanes(planes.size());
+			this.setTypePlane(new int[this.getnPlanes()]);
+		
+			this.windowStart = new int[this.getnPlanes()];
+			this.windowDuration = new int[this.getnPlanes()];
+			this.windowEnd = new int[this.getnPlanes()];
+		
+			for(int i = 0 ; i < this.getnPlanes(); i++){
+				this.windowDuration[i] = planes.get(i)[0];
+				this.typePlane[i] = planes.get(i)[1];
 			}
 		}
-
-		this.setnTracks(capacity.length);
-		this.setCapacity(capacity);
-		this.setnPlanes(planes.size());
-
-		this.windowStart = new int[this.getnPlanes()];
-		this.windowDuration = new int[this.getnPlanes()];
-		this.windowEnd = new int[this.getnPlanes()];
-		this.typePlane = new int[this.getnPlanes()];
-
-		for (int i = 0; i < this.getnPlanes(); i++) {
-			this.windowStart[i] = planes.get(i)[0];
-			this.windowEnd[i] = planes.get(i)[1];
-			this.windowDuration[i] = this.windowEnd[i] - this.windowStart[i];
-			this.typePlane[i] = planes.get(i)[2];
+		else {
+			for(String s : schedule) {
+				String[] temp = s.split(":");
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3])};
+				planes.add(planesByTF);
+			}
+			this.setnTracks(capacity.length);
+			this.setCapacity(capacity);
+			this.setnPlanes(planes.size());
+			this.setTypePlane(new int[this.getnPlanes()]);
+		
+			this.windowStart = new int[this.getnPlanes()];
+			this.windowDuration = new int[this.getnPlanes()];
+			this.windowEnd = new int[this.getnPlanes()];
+		
+			for(int i = 0 ; i < this.getnPlanes(); i++){
+				this.windowStart[i] = planes.get(i)[0];
+				this.windowEnd[i] = planes.get(i)[1]+planes.get(i)[2];
+				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
+				this.typePlane[i] = planes.get(i)[3];
+			}
 		}
-
 	}
 
 	public void model(Solver s) {
@@ -337,13 +348,17 @@ public class AircraftLanding {
 		this.nTracks = nTracks;
 	}
 
+	public String[] getSchedule() {
+		return schedule;
+	}
+
 	public void chooseStrategy(Solver s) {
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(this.takeOff), IntStrategyFactory.inputOrder_InDomainMin(this.landing), IntStrategyFactory.inputOrder_InDomainMin(this.duration), IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)));
 	}
 
 
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator2();
+		AircraftLanding al = InstanceGeneratorDummy.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy(s);
