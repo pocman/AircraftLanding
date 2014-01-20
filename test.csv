@@ -1,0 +1,7 @@
+idPlane; idtrack; arrivalTime; departureTime; duration; capacity
+0; 0; 660; 720; 60; 1
+1; 0; 660; 720; 60; 1
+2; 0; 660; 690; 30; 2
+3; 0; 690; 720; 30; 3
+4; 0; 720; 780; 60; 2
+5; 0; 720; 780; 60; 3

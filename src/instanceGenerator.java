@@ -3,7 +3,9 @@ import java.util.Random;
 
 public class instanceGenerator {
 
-	/**
+	/**	générer une instance
+	 * Si fenetreFixe est a true alors on fixe pour chaque avion une fourchette pour décoller et 
+	 * atterir sinon on fixe juste une durée de stationnement
 	 * @param args
 	 * 
 	 */
