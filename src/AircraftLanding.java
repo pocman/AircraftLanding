@@ -1,3 +1,7 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
@@ -153,7 +157,7 @@ public class AircraftLanding {
 					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane]);
 				}
 			}
-			System.out.println("load of track N� " + t + " : ");
+			System.out.println("load of track N " + t + " : ");
 			String s = "";
 			for(int key : interrestingPoints.keySet()){
 				s = s + " " + interrestingPoints.get(key);
@@ -176,6 +180,36 @@ public class AircraftLanding {
 				}
 			}			
 		}
+	}
+	
+	/**
+	 * idPlane;idtrack;arrivalTime;departureTime;duration;capacity
+	 * @param nameFile
+	 * @throws IOException
+	 */
+	public void csvOutput(String nameFile) throws IOException{
+		File file = new File(nameFile + ".csv");
+		 
+		// if file doesnt exists, then create it
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+
+		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write("idPlane; idtrack; arrivalTime; departureTime; duration; capacity");
+		for(int plane = 0; plane < nPlanes; plane++){
+			String content = "";
+			content += plane + "; ";
+			int track = 0;
+			for(int t = 0; t < nTracks; t++){
+				if(tracks[t][plane].getValue() == 1)
+					track = t;
+			}
+			content += track + "; " + landing[plane].getValue() + "; " + takeOff[plane].getValue() + "; " + duration[plane].getValue() + "; " + capacity[plane];
+			bw.write(content);
+		}
+		bw.close();
 	}
 	
 	public int[] getWindowEnd() {
