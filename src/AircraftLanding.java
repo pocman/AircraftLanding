@@ -8,6 +8,7 @@ import solver.constraints.Constraint;
 import solver.constraints.ICF;
 import solver.constraints.IntConstraintFactory;
 import solver.constraints.LogicalConstraintFactory;
+import solver.search.loop.monitors.SMF;
 import solver.variables.IntVar;
 import solver.variables.Task;
 import solver.variables.VF;
@@ -74,6 +75,9 @@ public class AircraftLanding {
 	public void model(Solver s){
 		
 		activityPlanes = new Task[nPlanes];
+		landing = new IntVar[nPlanes];
+		duration = new IntVar[nPlanes];
+		takeOff = new IntVar[nPlanes];
 		
 		for(int i = 0; i < nPlanes; i++){
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
@@ -89,8 +93,7 @@ public class AircraftLanding {
 		
 		//Un avion ne peut être que sur une seule piste
 		for(int plane = 0; plane < nPlanes; plane++){
-			IntVar count = VF.enumerated("count", 1, 1, s);
-			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), count));
+			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
 		}
 
 		//contrainte souple de précédence entre les avions	
@@ -108,18 +111,20 @@ public class AircraftLanding {
 	}
 	
 	public void contraintePrecedence(Solver s){
-		IntVar brokenConstraint[] = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
+		IntVar[] brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
+		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
 		for (int i = 0; i < nPlanes; i++) {
-			for (int j = 0; j < nPlanes && i!=j; j++) {
+			for (int j = 0; j < nPlanes; j++) {
 				Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
 				LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
 																						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s)));
 			}
 		}
-		s.post(ICF.sum(brokenConstraint, minBreak));		
+		s.post(ICF.sum(brokenConstraint, minBreak));
 	}
 	
 	public void solve(Solver s){
+		SMF.log(s, true, false);
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 	
@@ -156,7 +161,7 @@ public class AircraftLanding {
 			System.out.println(s);
 			System.out.println("load by plane");
 			for(int plane : ordedPlaneOnTheTrack){
-				String sPlane = "Plane Nï¿½ " + plane + " : ";
+				String sPlane = "Plane N " + plane + " : ";
 				for(int key : interrestingPoints.keySet()){
 					if(key > this.landing[plane].getValue())
 						sPlane = sPlane + "   ";
@@ -242,8 +247,12 @@ public class AircraftLanding {
 
 
 	public static void main(String[] args) {
+		AircraftLanding al = InstanceGenerator.generator();
+		Solver s = new Solver("aircraftLanding");
+		al.model(s);
+		al.solve(s);
+		al.prettyOutput();
 		
-
 	}
 
 }

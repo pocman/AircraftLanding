@@ -1,5 +1,5 @@
 
-public class instanceGenerator {
+public class InstanceGenerator {
 
 	/**
 	 * @param args
