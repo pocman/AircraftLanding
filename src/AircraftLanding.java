@@ -4,7 +4,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
+
+import com.sun.jmx.remote.util.OrderClassLoaders;
 
 import solver.ResolutionPolicy;
 import solver.Solver;
@@ -13,6 +16,9 @@ import solver.constraints.ICF;
 import solver.constraints.IntConstraintFactory;
 import solver.constraints.LogicalConstraintFactory;
 import solver.search.loop.monitors.SMF;
+import solver.search.strategy.ISF;
+import solver.search.strategy.IntStrategyFactory;
+import solver.search.strategy.strategy.StrategiesSequencer;
 import solver.variables.IntVar;
 import solver.variables.Task;
 import solver.variables.VF;
@@ -37,6 +43,7 @@ public class AircraftLanding {
 	int nPlanes; //number of planes
 	int nTracks; //number of tracks
 	IntVar minBreak;
+	int MAX_TIME = 60*24;
 	
 	//constructor for number of planes by hour and with given number of planes by type
 	//We make the hypothesis that planes are landing in the hours and taking of in the same hour
@@ -129,6 +136,11 @@ public class AircraftLanding {
 	
 	public void solve(Solver s){
 		SMF.log(s, true, false);
+		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+				ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
+				ISF.inputOrder_InDomainMin(landing),
+				ISF.inputOrder_InDomainMax(takeOff),
+				ISF.inputOrder_InDomainMax(duration)));
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 
@@ -167,15 +179,16 @@ public class AircraftLanding {
 	public void prettyOutput(){
 		for(int t = 0 ; t < this.getnTracks(); t++){
 			//on place les avions dans l'ordre d'atterrissage
-			ArrayList<Integer> ordedPlaneOnTheTrack = new ArrayList<Integer>();
-			for(int plane = 0; plane < this.tracks[t].length; plane++){
+			HashMap<Integer,Integer> ordedPlaneOnTheTrack = new HashMap<Integer,Integer>(MAX_TIME);
+			for(int plane = 0; plane < nPlanes; plane++){
 				if(this.tracks[t][plane].getValue() == 1){
-					ordedPlaneOnTheTrack.add(this.landing[plane].getValue(), plane);
+					ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), plane);
 				}
 			}
 			//On genere l'ensemble des pas de temps d'interet pour chaque piste
 			HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
-			for(int plane : ordedPlaneOnTheTrack){
+			for(int keyPlane : ordedPlaneOnTheTrack.keySet()){
+				int plane = ordedPlaneOnTheTrack.get(keyPlane);
 				if(interrestingPoints.containsKey(this.landing[plane].getValue())){
 					interrestingPoints.put(this.landing[plane].getValue(), this.typePlane[plane] + interrestingPoints.get(this.landing[plane].getValue()));
 				}
@@ -189,18 +202,20 @@ public class AircraftLanding {
 					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane]);
 				}
 			}
-			System.out.println("load of track N " + t + " : ");
+			System.out.print("load of track N " + t + " : ");
 			String s = "";
 			for(int key : interrestingPoints.keySet()){
 				s = s + " " + interrestingPoints.get(key);
 			}
 			System.out.println(s);
-			System.out.println("load by plane");
-			for(int plane : ordedPlaneOnTheTrack){
+			System.out.print("load by plane");
+			for(int keyPlane : ordedPlaneOnTheTrack.keySet()){
+				int plane = ordedPlaneOnTheTrack.get(keyPlane);
 				String sPlane = "Plane N " + plane + " : ";
-				for(int key : interrestingPoints.keySet()){
+				System.out.print(".");
+				for(int key : interrestingPoints.keySet()){					
 					if(key > this.landing[plane].getValue())
-						sPlane = sPlane + "   ";
+						sPlane = sPlane + " . ";
 					else if (key == this.landing[plane].getValue())
 						sPlane = sPlane + " \\ ";
 					else if(key <= this.landing[plane].getValue() && key < this.takeOff[plane].getValue())
@@ -208,7 +223,7 @@ public class AircraftLanding {
 					else if(key == this.takeOff[plane].getValue())
 						sPlane = sPlane + " // ";
 					else
-						sPlane = sPlane + "   ";					
+						sPlane = sPlane + " . ";					
 				}
 			}			
 		}
@@ -220,6 +235,7 @@ public class AircraftLanding {
 	 * @throws IOException
 	 */
 	public void csvOutput(String nameFile) throws IOException{
+		System.out.println("Creating CSV File");
 		File file = new File(nameFile + ".csv");
 		 
 		// if file doesnt exists, then create it
@@ -229,7 +245,7 @@ public class AircraftLanding {
 
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write("idPlane; idtrack; arrivalTime; departureTime; duration; capacity");
+		bw.write("idPlane; idtrack; arrivalTime; departureTime; duration; capacity" + "\n");
 		for(int plane = 0; plane < nPlanes; plane++){
 			String content = "";
 			content += plane + "; ";
@@ -238,7 +254,7 @@ public class AircraftLanding {
 				if(tracks[t][plane].getValue() == 1)
 					track = t;
 			}
-			content += track + "; " + landing[plane].getValue() + "; " + takeOff[plane].getValue() + "; " + duration[plane].getValue() + "; " + capacity[plane];
+			content += track + "; " + landing[plane].getValue() + "; " + takeOff[plane].getValue() + "; " + duration[plane].getValue() + "; " + typePlane[plane] + "\n";
 			bw.write(content);
 		}
 		bw.close();
@@ -313,11 +329,17 @@ public class AircraftLanding {
 
 
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator();
+		AircraftLanding al = InstanceGenerator.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.solve(s);
 		al.prettyOutput();
+		try {
+			al.csvOutput("test");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 

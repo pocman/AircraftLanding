@@ -4,7 +4,7 @@ public class InstanceGenerator {
 	/**
 	 * @param args
 	 */
-	public static AircraftLanding generator(){
+	public static AircraftLanding generator1(){
 			
 		int[] capacity = new int[]{6,5,3,2,1};
 		
@@ -22,10 +22,18 @@ public class InstanceGenerator {
 	    "21:22:0:0:1",
 	    "22:23:0:1:0"};
 		
-		return new AircraftLanding(schedule, capacity);
-
+		return new AircraftLanding(schedule, capacity);		
+	}
+	
+	public static AircraftLanding generator2(){
 		
+		int[] capacity = new int[]{6};
 		
+		String[] schedule = new String[]{
+		"11:12:2:1:1",
+		"12:13:0:1:1"};
+		
+		return new AircraftLanding(schedule, capacity);		
 	}
 
 }
