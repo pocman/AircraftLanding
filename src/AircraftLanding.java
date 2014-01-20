@@ -10,7 +10,9 @@ import solver.constraints.IntConstraintFactory;
 import solver.constraints.LogicalConstraintFactory;
 import solver.variables.IntVar;
 import solver.variables.Task;
+import solver.variables.VF;
 import solver.variables.VariableFactory;
+import util.tools.ArrayUtils;
 
 
 public class AircraftLanding {
@@ -84,11 +86,20 @@ public class AircraftLanding {
 		
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
+		
+		//Un avion ne peut être que sur une seule piste
+		for(int plane = 0; plane < nPlanes; plane++){
+			IntVar count = VF.enumerated("count", 1, 1, s);
+			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), count));
+		}
 
-		//contrainte souple de précédence entre les avions		
-		for(int i = 0 ; i < this.getnTracks(); i++){
+		//contrainte souple de précédence entre les avions	
+		this.contraintePrecedence(s);
+		
+
+		
+		
 			
-		}		
 		//s.post(IntConstraintFactory.cumulative(activityPlanes, typePlane, capacity));
 	}
 	
@@ -101,7 +112,10 @@ public class AircraftLanding {
 																						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s)));
 			}
 		}
-		s.post(ICF.sum(brokenConstraint, minBreak));
+		s.post(ICF.sum(brokenConstraint, minBreak));		
+	}
+	
+	public void solve(Solver s){
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 	
