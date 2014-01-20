@@ -115,7 +115,7 @@ public class AircraftLanding {
 
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
-				LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i));
+				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
 			}
 		}
 
@@ -145,8 +145,8 @@ public class AircraftLanding {
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
-				LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
-						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s)));
+				s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
+						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
 			}
 		}
 		s.post(ICF.sum(brokenConstraint, minBreak));
@@ -358,6 +358,7 @@ public class AircraftLanding {
 
 
 	public static void main(String[] args) {
+		//AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.PETIT, 42, true);
 		AircraftLanding al = InstanceGeneratorDummy.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);

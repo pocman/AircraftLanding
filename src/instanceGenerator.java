@@ -1,7 +1,7 @@
 import java.util.Random;
 
 
-public class instanceGenerator {
+public class InstanceGenerator {
 
 	/**	générer une instance
 	 * Si fenetreFixe est a true alors on fixe pour chaque avion une fourchette pour décoller et 
@@ -9,6 +9,10 @@ public class instanceGenerator {
 	 * @param args
 	 * 
 	 */
+	public enum TAILLE_AEROPORT {
+		PETIT, MOYEN, GRAND;
+	}
+
 	public static AircraftLanding generator(TAILLE_AEROPORT tailleAeroport, int alea, boolean fenetreFixe){
 		
 		
