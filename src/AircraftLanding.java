@@ -277,6 +277,14 @@ public class AircraftLanding {
 
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
+		
+		//Les pistes
+		bw.write("idtrack; capacity" + "\n");
+		for(int track = 0; track < this.getnTracks(); track++){
+			bw.write(track + "; " + this.capacity[track] + " \n");
+		}
+		
+		//Les avions		
 		bw.write("idPlane; idtrack; arrivalTime; departureTime; duration; capacity" + "\n");
 		for (int plane = 0; plane < nPlanes; plane++) {
 			String content = "";
@@ -369,13 +377,17 @@ public class AircraftLanding {
 //		ISF.inputOrder_InDomainMin(landing),
 //		ISF.inputOrder_InDomainMax(takeOff),
 //		ISF.inputOrder_InDomainMax(duration)));
-		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(this.takeOff), IntStrategyFactory.inputOrder_InDomainMin(this.landing), IntStrategyFactory.inputOrder_InDomainMin(this.duration), IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)));
+		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
+				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
+				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
+				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)));
 	}
 
 
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 1, true);
-		//AircraftLanding al = InstanceGeneratorDummy.generator1();
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 20, true);
+		//AircraftLanding al = InstanceGeneratorDummy.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy(s);
@@ -384,7 +396,6 @@ public class AircraftLanding {
 		try {
 			al.csvOutput("test");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

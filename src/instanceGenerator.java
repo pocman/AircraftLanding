@@ -50,7 +50,7 @@ public class InstanceGenerator {
 			for(int i=0; i<nbTracksAverage; i++) {
 				capacity[i]=3+r.nextInt(4);
 			}
-			int nbPlanesAverage=80+r.nextInt(150);
+			int nbPlanesAverage=30+r.nextInt(20);
 			
 			schedule = new String[nbPlanesAverage];
 			int random2=r.nextInt(24);
@@ -75,7 +75,7 @@ public class InstanceGenerator {
 			for(int i=0; i<nbTracksLarge; i++) {
 				capacity[i]=5+r.nextInt(5);
 			}
-			int nbPlanesLarge=700+r.nextInt(300);
+			int nbPlanesLarge=300+r.nextInt(300);
 			
 			schedule = new String[nbPlanesLarge];
 			int random4=r.nextInt(80);
@@ -118,7 +118,7 @@ public class InstanceGenerator {
 				for(int i=0; i<nbPlanesSmall; i++) {
 					int fourchette=r.nextInt(40); //	on prevoit une fenetre de 40 min max
 					int type;
-					if(nbType2<2*nbPlanesSmall/3) {
+					if(nbType2<2*nbPlanesSmall/5) {
 						type=1+r.nextInt(2);
 					}
 					else {
@@ -175,7 +175,7 @@ public class InstanceGenerator {
 				for(int i=0; i<nbTracksAverage; i++) {
 					capacity[i]=3+r.nextInt(4);
 				}
-				int nbPlanesAverage=80+r.nextInt(150);
+				int nbPlanesAverage=30+r.nextInt(20);
 				
 				schedule = new String[nbPlanesAverage];
 				int random2=r.nextInt(24);
@@ -241,7 +241,7 @@ public class InstanceGenerator {
 				for(int i=0; i<nbTracksLarge; i++) {
 					capacity[i]=5+r.nextInt(5);
 				}
-				int nbPlanesLarge=700+r.nextInt(300);
+				int nbPlanesLarge=300+r.nextInt(100);
 				
 				schedule = new String[nbPlanesLarge];
 				int random4=r.nextInt(80);
