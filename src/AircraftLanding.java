@@ -85,8 +85,8 @@ public class AircraftLanding {
 			this.windowEnd = new int[this.getnPlanes()];
 		
 			for(int i = 0 ; i < this.getnPlanes(); i++){
-				this.windowStart[i] = planes.get(i)[0];
-				this.windowEnd[i] = planes.get(i)[1]+planes.get(i)[2];
+				this.windowStart[i] = planes.get(i)[0]*60;
+				this.windowEnd[i] = planes.get(i)[1]*60+planes.get(i)[2];
 				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
 				this.typePlane[i] = planes.get(i)[3];
 			}
@@ -110,14 +110,14 @@ public class AircraftLanding {
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 		}
 
+		//for each plane which track, it's on
+		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
+		
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i));
 			}
 		}
-
-		//for each plane which track, it's on
-		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 		//Un avion ne peut etre que sur une seule piste
