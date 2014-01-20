@@ -112,8 +112,8 @@ public class AircraftLanding {
 
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
-		
-		for (int i = 0; i < nPlanes; i++) {
+
+		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i));
 			}
