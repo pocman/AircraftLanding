@@ -95,12 +95,12 @@ public class AircraftLanding {
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 		
-		//Un avion ne peut être que sur une seule piste
+		//Un avion ne peut ï¿½tre que sur une seule piste
 		for(int plane = 0; plane < nPlanes; plane++){
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
 		}
-
-		//contrainte souple de précédence entre les avions	
+		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		//contrainte souple de prï¿½cï¿½dence entre les avions	
 		this.contraintePrecedence(s);
 		
 		//contrainte cumulative
