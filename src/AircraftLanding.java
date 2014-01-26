@@ -20,9 +20,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
+import com.sun.jmx.remote.util.OrderClassLoaders;
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 
@@ -90,6 +93,7 @@ public class AircraftLanding {
 			for(int i = 0 ; i < this.getnPlanes(); i++){
 				this.windowStart[i] = planes.get(i)[0]*60;
 				this.windowEnd[i] = planes.get(i)[1]*60+planes.get(i)[2];
+				//TODO Quentin : on doit pouvoir changer la durée en mettant une borne min et une borne max
 				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
 				this.typePlane[i] = planes.get(i)[3];
 			}
@@ -108,11 +112,12 @@ public class AircraftLanding {
 
 		for (int i = 0; i < nPlanes; i++) {
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
-			//Constraint on the minimal duration is here
+			//TODO Quentin : on doit pouvoir changer la durée en mettant une borne min et une borne max
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, 30, windowDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks()-1, s);
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
+			System.out.println("type of plane " + i + " :" + typePlane[i]);
 			System.out.println(landing[i]);
 			System.out.println(duration[i]);
 			System.out.println(takeOff[i]);
@@ -122,7 +127,13 @@ public class AircraftLanding {
 
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
+		
+		//Un avion ne peut etre que sur une seule piste
+		for (int plane = 0; plane < nPlanes; plane++) {
+			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
+		}
 
+		//Pour chaque avion, on a son numéro de piste
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
@@ -131,17 +142,16 @@ public class AircraftLanding {
 			System.out.println();
 		}
 
+		//On ne peut pas avoir d'avions qui décollent ou attérissent la même minute.
+		//TODO : Lucas possibilité d'amérioration ici
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
-		
-		//Un avion ne peut etre que sur une seule piste
-		for (int plane = 0; plane < nPlanes; plane++) {
-			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
-		}
+
 
 		//contrainte souple de precedence entre les avions
 		this.contraintePrecedence(s);
 
 		//contrainte cumulative
+		//TODO : possibilité d'amérioration
 		heightInCumulatives = VF.boundedMatrix("heightInCumulative", this.getnTracks(), this.getnPlanes(), 0, this.setOfTypes[this.setOfTypes.length-1], s);
 		for (int u = 0; u < this.getnTracks(); u++) {
 			for (int v = 0; v < this.getnPlanes(); v++) {
@@ -221,43 +231,54 @@ public class AircraftLanding {
 			HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
 			for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
 				int plane = ordedPlaneOnTheTrack.get(keyPlane);
-				if (interrestingPoints.containsKey(this.landing[plane].getValue())) {
-					interrestingPoints.put(this.landing[plane].getValue(), this.typePlane[plane] + interrestingPoints.get(this.landing[plane].getValue()));
-				} else {
-					interrestingPoints.put(this.landing[plane].getValue(), this.typePlane[plane]);
+				if (!interrestingPoints.containsKey(this.landing[plane].getValue())) {
+					interrestingPoints.put(this.landing[plane].getValue(), 0);
 				}
-				if (interrestingPoints.containsKey(this.takeOff[plane].getValue())) {
-					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane] + interrestingPoints.get(this.landing[plane].getValue()));
-				} else {
-					interrestingPoints.put(this.takeOff[plane].getValue(), this.typePlane[plane]);
+				if (!interrestingPoints.containsKey(this.takeOff[plane].getValue())) {
+					interrestingPoints.put(this.takeOff[plane].getValue(), 0);
 				}
+
 			}
+			
+			//On calcul la charge pour chaque point d'interet
+			int previousValue = 0;
+			int justLanded;
+			int justTookOff;
+			for(int keyPoints : asSortedList(interrestingPoints.keySet())){
+				justLanded = 0;
+				justTookOff = 0;
+				for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
+					int plane = ordedPlaneOnTheTrack.get(keyPlane);
+					if(this.landing[plane].getValue() == keyPoints){
+						justLanded += this.typePlane[plane];
+						//System.out.println("time : " + keyPoints + " landed : " + justLanded);
+					}
+					if(this.takeOff[plane].getValue() == keyPoints){
+						justTookOff += this.typePlane[plane];
+						//System.out.println("time : " + keyPoints + " tookOff : " + justTookOff);
+					}			
+					
+				}
+				previousValue =  previousValue + justLanded - justTookOff;
+				System.out.print(" keyPoints : " +keyPoints + " previous value : " + previousValue);
+				interrestingPoints.put(keyPoints, previousValue);				
+			}
+			
+			System.out.println("");
 			System.out.print("load of track N " + t + " : ");
 			String s = "";
-			for (int key : interrestingPoints.keySet()) {
+			for (int key : asSortedList(interrestingPoints.keySet())) {
 				s = s + " " + interrestingPoints.get(key);
 			}
 			System.out.println(s);
-			System.out.print("load by plane");
-			for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
-				int plane = ordedPlaneOnTheTrack.get(keyPlane);
-				String sPlane = "Plane N " + plane + " : ";
-				System.out.print(".");
-				for (int key : interrestingPoints.keySet()) {
-					if (key > this.landing[plane].getValue())
-						sPlane = sPlane + " . ";
-					else if (key == this.landing[plane].getValue())
-						sPlane = sPlane + " \\ ";
-					else if (key <= this.landing[plane].getValue() && key < this.takeOff[plane].getValue())
-						sPlane = sPlane + " _ ";
-					else if (key == this.takeOff[plane].getValue())
-						sPlane = sPlane + " // ";
-					else
-						sPlane = sPlane + " . ";
-				}
-			}
-			System.out.println();
 		}
+	}
+	
+	public static
+	<T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+	  List<T> list = new ArrayList<T>(c);
+	  java.util.Collections.sort(list);
+	  return list;
 	}
 
 	/**
@@ -386,7 +407,7 @@ public class AircraftLanding {
 
 
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 20, true);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 1, true);
 		//AircraftLanding al = InstanceGeneratorDummy.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
