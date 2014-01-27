@@ -82,8 +82,6 @@ public class InstanceGenerator {
 				}
 				break;
 
-				//with multi 1.084; 4,363s
-				//without 0.803; 0,976s 
 			case MOYEN:
 				int nbTracksAverage = 4 + r.nextInt(3);
 				capacity = new int[nbTracksAverage];
@@ -91,7 +89,7 @@ public class InstanceGenerator {
 					capacity[i] = 5 + r.nextInt(4);
 				}
 				//int nbPlanesAverage = 80 + r.nextInt(50);
-				int nbPlanesAverage = 160; // + r.nextInt(50);
+				int nbPlanesAverage = 120; // + r.nextInt(50);
 
 				schedule = new String[nbPlanesAverage];
 				int random2 = r.nextInt(24);
@@ -151,7 +149,7 @@ public class InstanceGenerator {
 					capacity[i] = 5 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
-				int nbPlanesLarge = 200;
+				int nbPlanesLarge = 150;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);

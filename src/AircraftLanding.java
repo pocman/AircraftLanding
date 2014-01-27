@@ -35,9 +35,9 @@ public class AircraftLanding {
 	Task[] activityPlanes;
 	IntVar[] duration, landing, takeOff; //for each plane
 	IntVar[][] tracks; //binary variable
-	
-	IntVar minBreak;
+	IntVar[] sumByTracks;
 	IntVar[] tracksByPlane;
+	IntVar minBreak;	
 	IntVar[] vCapacities; //of the track//no branching
 	IntVar[][] vLoads;//no branching
 	IntVar[][]  heightInCumulatives; //no branching
@@ -128,6 +128,23 @@ public class AircraftLanding {
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 		
+		//Cassage de symetrie
+		System.out.println("Utiliser un cassage de symetrie qui peut ralentir la recherche de solution");
+		sumByTracks = VF.boundedArray("sum planes by track", nTracks, 0,  nPlanes, s);
+		for(int t = 0; t < nTracks; t++)
+			s.post(ICF.sum(tracks[t], sumByTracks[t]));
+		
+		for(int t1 = 0; t1 < nTracks -1; t1++){
+			for(int t2 = t1+1; t2 < nTracks; t2++){
+				if(this.capacity[t1] == this.capacity[t2]){
+					//System.out.println(this.capacity[t1] + " == " + this.capacity[t2]);
+					s.post(ICF.arithm(this.sumByTracks[t1], ">=", this.sumByTracks[t2]));
+					//System.out.println(this.sumByTracks[t1].toString() + " >= " + this.sumByTracks[t2].toString() );
+				}
+			}
+		}
+		
+		
 		//Un avion ne peut etre que sur une seule piste
 		for (int plane = 0; plane < nPlanes; plane++) {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
@@ -150,6 +167,7 @@ public class AircraftLanding {
 		this.contraintePrecedence(s);
 
 		if (utiliseMultiCumulative) {
+			System.out.println("Utilise la contrainte multidimensionnelle");
 			heightInCumulatives = VF.boundedMatrix("heightInCumulative",
 					this.getnPlanes(), this.getnTracks(), 0,
 					this.setOfTypes[this.setOfTypes.length - 1], s);
@@ -221,7 +239,7 @@ public class AircraftLanding {
 					interestingTimePoints, interestingResources));
 			s.post(c);
 		} else {
-			// Contrainte cumulative
+			System.out.println("N'utiliser PAS la contrainte multidimensionnelle");
 			heightInCumulatives = VF.boundedMatrix("heightInCumulative",
 					this.getnPlanes(), this.getnTracks(), 0,
 					this.setOfTypes[this.setOfTypes.length - 1], s);
@@ -243,8 +261,8 @@ public class AircraftLanding {
 	
 	public void solve(Solver s) {
 		SMF.log(s, true, false);
-		s.findSolution();
-		//s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
+		//s.findSolution();
+		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 	
 	public void chooseStrategy(Solver s) {
@@ -256,12 +274,14 @@ public class AircraftLanding {
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
-				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
-				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)));
+				IntStrategyFactory.inputOrder_InDomainMin(this.duration),				
+				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
+				//IntStrategyFactory.firstFail_InDomainMiddle(this.sumByTracks)
+				));
 	}
 	
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 200, true, true);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.GRAND, 100, true, true);
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy(s);
