@@ -15,7 +15,7 @@ public class InstanceGenerator {
 	}
 
 	public static AircraftLanding generator(TAILLE_AEROPORT tailleAeroport,
-			int alea, boolean fenetreFixe) {
+			int alea, boolean fenetreFixe, boolean multiCumulative) {
 
 		String[] schedule;
 		int[] capacity;
@@ -30,6 +30,7 @@ public class InstanceGenerator {
 				for (int i = 0; i < nbTracksSmall; i++) {
 					capacity[i] = 3 + r.nextInt(3);
 				}
+				//int nbPlanesSmall = 10 + r.nextInt(10);
 				int nbPlanesSmall = 20 + r.nextInt(10);
 
 				schedule = new String[nbPlanesSmall];
@@ -81,13 +82,16 @@ public class InstanceGenerator {
 				}
 				break;
 
+				//with multi 1.084; 4,363s
+				//without 0.803; 0,976s 
 			case MOYEN:
-				int nbTracksAverage = 5 + r.nextInt(3);
+				int nbTracksAverage = 4 + r.nextInt(3);
 				capacity = new int[nbTracksAverage];
 				for (int i = 0; i < nbTracksAverage; i++) {
-					capacity[i] = 4 + r.nextInt(4);
+					capacity[i] = 5 + r.nextInt(4);
 				}
-				int nbPlanesAverage = 55; // + r.nextInt(20);
+				//int nbPlanesAverage = 80 + r.nextInt(50);
+				int nbPlanesAverage = 160; // + r.nextInt(50);
 
 				schedule = new String[nbPlanesAverage];
 				int random2 = r.nextInt(24);
@@ -140,12 +144,14 @@ public class InstanceGenerator {
 				break;
 
 			case GRAND:
-				int nbTracksLarge = 10 + r.nextInt(3);
+				//int nbTracksLarge = 5 + r.nextInt(3);
+				int nbTracksLarge = 6 + r.nextInt(3);
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
 					capacity[i] = 5 + r.nextInt(5);
 				}
-				int nbPlanesLarge = 150;// + r.nextInt(100);
+				//int nbPlanesLarge = 300 + r.nextInt(100);
+				int nbPlanesLarge = 200;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
@@ -280,11 +286,11 @@ public class InstanceGenerator {
 				break;
 			}
 		}
-		return new AircraftLanding(schedule, capacity, fenetreFixe);
+		return new AircraftLanding(schedule, capacity, fenetreFixe, multiCumulative);
 	}
 
 	public static void main(String[] args) {
-		AircraftLanding instance = generator(TAILLE_AEROPORT.MOYEN, 12, true);
+		AircraftLanding instance = generator(TAILLE_AEROPORT.MOYEN, 12, true, true);
 		String[] schedule = instance.getSchedule();
 		System.out
 				.println("Instance pour un aeroport de taille moyenne et fenetre de temps fixees");

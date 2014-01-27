@@ -22,7 +22,7 @@ public class InstanceGeneratorDummy {
 	    "21:22:0:0:1",
 	    "22:23:0:1:0"};
 		
-		return new AircraftLanding(schedule, capacity, true);		
+		return new AircraftLanding(schedule, capacity, true, true);		
 	}
 	
 	public static AircraftLanding generator2(){
@@ -35,7 +35,7 @@ public class InstanceGeneratorDummy {
 		"11:12:10:1",
 		"11:12:10:3"};
 		
-		return new AircraftLanding(schedule, capacity, true);		
+		return new AircraftLanding(schedule, capacity, true, true);		
 	}
 
 }
