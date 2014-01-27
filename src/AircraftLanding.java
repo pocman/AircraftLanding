@@ -50,6 +50,7 @@ public class AircraftLanding {
 	int MAX_TIME = 60*24;
 	String[] schedule;
 	IntVar[][]  heightInCumulatives;
+
 	
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe){
 		this.schedule=schedule;
@@ -137,7 +138,7 @@ public class AircraftLanding {
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
-				System.out.print(tracks[i][j] + " ,");
+				//System.out.print(tracks[i][j] + " ,");
 			}
 			System.out.println();
 		}
@@ -150,8 +151,7 @@ public class AircraftLanding {
 		//contrainte souple de precedence entre les avions
 		this.contraintePrecedence(s);
 
-		//contrainte cumulative
-		//TODO : possibilité d'amérioration
+		//Contrainte cumulative
 		heightInCumulatives = VF.boundedMatrix("heightInCumulative", this.getnTracks(), this.getnPlanes(), 0, this.setOfTypes[this.setOfTypes.length-1], s);
 		for (int u = 0; u < this.getnTracks(); u++) {
 			for (int v = 0; v < this.getnPlanes(); v++) {
@@ -161,8 +161,77 @@ public class AircraftLanding {
 			System.out.println();
 			s.post(IntConstraintFactory.cumulative(activityPlanes, heightInCumulatives[u], VariableFactory.fixed(this.getCapacity()[u], s)));
 		}
+		
+		//Contrainte multiCumulative, meilleurs performances pour de grandes instances
+		
+//		heightInCumulatives = VF.boundedMatrix("heightInCumulative", this.getnPlanes(), this.getnTracks(), 0, this.setOfTypes[this.setOfTypes.length-1], s);
+//		for (int u = 0; u < this.getnTracks(); u++) {
+//			for (int v = 0; v < this.getnPlanes(); v++) {
+//				s.post(IntConstraintFactory.times(VariableFactory.fixed(this.typePlane[v], s), this.tracks[u][v], heightInCumulatives[v][u]));
+//				//System.out.print(heightInCumulatives[v][u] + " ,");
+//			}
+//		}
+//		
+//		int[][] successors = new int[this.activityPlanes.length][0];
+//		
+//		IntVar[] vCapacities = new IntVar[this.capacity.length];
+//		for(int c = 0; c < this.capacity.length; c++){
+//			vCapacities[c] = VF.fixed(this.capacity[c], s);
+//		}
+//		
+//        int nbTasks = this.activityPlanes.length;
+//        int nbResources = vCapacities.length;
+//        
+//        int[] resourceType = new int[nbResources];
+//        for(int i = 0; i < this.nTracks; i++){
+//        	resourceType[i] = 0;
+//        }
+//        
+//        int[] interestingTimePoints = new int[]{0};//test
+//        
+//        int[] interestingResources  = new int[this.nTracks];
+//        for(int i = 0; i < this.nTracks; i++){
+//        	interestingResources[i] = i;
+//        }
+//        
+//        int nbInterestingTimePoints = interestingTimePoints.length;
+//        int nbInterestingResources = interestingResources.length;
+//		    	
+//    	IntVar[][] vLoads = new IntVar[nbInterestingTimePoints][nbInterestingResources];
+//        for (int i=0;i<nbInterestingTimePoints;i++) {
+//            for (int j=0;j<nbInterestingResources;j++) {
+//                vLoads[i][j] = VariableFactory.bounded("load_"+interestingTimePoints[i],0,this.capacity[interestingResources[j]],s);
+//            }
+//        }
+//        
+//        int hIdx = 3*nbTasks;
+//        IntVar[] allVars = new IntVar[hIdx+nbTasks*nbResources+nbResources+nbInterestingTimePoints*nbInterestingResources];
+//        for (int t=0;t<nbTasks;t++) {
+//            allVars[t] = this.landing[t];
+//            allVars[t+nbTasks] = this.duration[t];
+//            allVars[t+2*nbTasks] = this.takeOff[t];
+//            for (int r=0;r<nbResources;r++) {
+//                allVars[hIdx+t*nbResources+r] = heightInCumulatives[t][r];
+//            }
+//        }
+//        int cIdx = hIdx+nbTasks*nbResources;
+//        for (int r=0;r<nbResources;r++) {
+//            allVars[cIdx+r] = vCapacities[r];
+//        }
+//        int lIdx = cIdx+nbResources;
+//        for (int i=0;i<nbInterestingTimePoints;i++) {
+//            for (int j=0;j<nbInterestingResources;j++) {
+//                allVars[lIdx+i*nbInterestingResources+j] = vLoads[i][j];
+//            }
+//        }
+//        
+//        Constraint c = new Constraint(allVars, s);
+//        c.addPropagators(new PropTTPCDynamicSweepLoads(allVars,nbTasks,nbResources,this.capacity,successors,resourceType,interestingTimePoints,interestingResources));
+//        s.post(c);
+		
+		
 	}
-
+	
 	public void contraintePrecedence(Solver s) {
 		IntVar[] brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes * nPlanes, s);
@@ -407,7 +476,7 @@ public class AircraftLanding {
 
 
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 1, true);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.GRAND, 1, true);
 		//AircraftLanding al = InstanceGeneratorDummy.generator2();
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
