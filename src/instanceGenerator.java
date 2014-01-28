@@ -89,7 +89,7 @@ public class InstanceGenerator {
 					capacity[i] = 5 + r.nextInt(4);
 				}
 				//int nbPlanesAverage = 80 + r.nextInt(50);
-				int nbPlanesAverage = 120; // + r.nextInt(50);
+				int nbPlanesAverage = 60; // + r.nextInt(50);
 
 				schedule = new String[nbPlanesAverage];
 				int random2 = r.nextInt(24);

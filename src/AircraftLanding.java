@@ -168,7 +168,7 @@ public class AircraftLanding {
 
 		if (utiliseMultiCumulative) {
 			System.out.println("Utilise la contrainte multidimensionnelle");
-			heightInCumulatives = VF.boundedMatrix("heightInCumulative",
+			heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
 					this.getnPlanes(), this.getnTracks(), 0,
 					this.setOfTypes[this.setOfTypes.length - 1], s);
 			for (int u = 0; u < this.getnTracks(); u++) {
@@ -240,7 +240,7 @@ public class AircraftLanding {
 			s.post(c);
 		} else {
 			System.out.println("N'utiliser PAS la contrainte multidimensionnelle");
-			heightInCumulatives = VF.boundedMatrix("heightInCumulative",
+			heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
 					this.getnPlanes(), this.getnTracks(), 0,
 					this.setOfTypes[this.setOfTypes.length - 1], s);
 			for (int u = 0; u < this.getnTracks(); u++) {
@@ -281,7 +281,7 @@ public class AircraftLanding {
 	}
 	
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.GRAND, 100, true, true);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 100, true, false);
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy(s);
