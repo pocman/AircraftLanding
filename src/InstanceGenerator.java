@@ -7,9 +7,9 @@ import util.ESat;
 public class InstanceGenerator {
 
 	/**
-	 * générer une instance Si fenetreFixe est a true alors on fixe pour chaque
-	 * avion une fourchette pour décoller et atterir sinon on fixe juste une
-	 * durée de stationnement
+	 * gï¿½nï¿½rer une instance Si fenetreFixe est a true alors on fixe pour chaque
+	 * avion une fourchette pour dï¿½coller et atterir sinon on fixe juste une
+	 * durï¿½e de stationnement
 	 * 
 	 * @param args
 	 * 
@@ -290,7 +290,7 @@ public class InstanceGenerator {
 			}
 		}
 		
-		//faire un test sur la possibilité d'une solution
+		//faire un test sur la possibilitï¿½ d'une solution
 		int[] dummyCapacity = new int[]{0};
 		for(int capa : capacity){
 			dummyCapacity[0] += capa;
@@ -326,7 +326,7 @@ public class InstanceGenerator {
 		int[] capacity = instance.getCapacity();
 		for (int i = 0; i < capacity.length; i++) {
 			System.out.println("Piste " + i);
-			System.out.println("Capacité : " + capacity[i]);
+			System.out.println("Capacitï¿½ : " + capacity[i]);
 			System.out.println("");
 		}
 	}
