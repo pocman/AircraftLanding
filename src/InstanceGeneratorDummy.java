@@ -6,7 +6,7 @@ public class InstanceGeneratorDummy {
 	 */
 	public static AircraftLanding generator1(){
 			
-		int[] capacity = new int[]{6,5,3,2,1};
+		int[] capacity = new int[]{6,5,3,7,5,3,2,5,4};
 		
 		String[] schedule = new String[]{
 		"11:12:1:1:1",

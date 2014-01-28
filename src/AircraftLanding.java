@@ -43,7 +43,7 @@ public class AircraftLanding {
 	IntVar[][] heightInCumulatives; //no branching
 
 	int[] setOfTypes = new int[]{1, 2, 3};
-	int[] windowStart, windowDuration, windowEnd; //for each plane
+	int[] windowStart, minDuration, windowEnd, maxDuration; //for each plane
 	int[] typePlane; //1,2 ou 3 correspondant a la capacite utilisee
 	int[] capacity; //of the track
 	int nPlanes; //number of planes
@@ -58,10 +58,12 @@ public class AircraftLanding {
 		this.schedule = schedule;
 		this.utiliseMultiCumulative = multiCumulative;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
-		if (!fenetreFixe) {
-			for (String s : schedule) {
+
+		if(fenetreFixe) {
+			for(String s : schedule){
+
 				String[] temp = s.split(":");
-				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1])};
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
 				planes.add(planesByTF);
 			}
 
@@ -71,17 +73,21 @@ public class AircraftLanding {
 			this.setTypePlane(new int[this.getnPlanes()]);
 
 			this.windowStart = new int[this.getnPlanes()];
-			this.windowDuration = new int[this.getnPlanes()];
+			this.minDuration = new int[this.getnPlanes()];
+			this.maxDuration = new int[this.getnPlanes()];
 			this.windowEnd = new int[this.getnPlanes()];
 
-			for (int i = 0; i < this.getnPlanes(); i++) {
-				this.windowDuration[i] = planes.get(i)[0];
-				this.typePlane[i] = planes.get(i)[1];
+
+			for(int i = 0 ; i < this.getnPlanes(); i++){
+				this.minDuration[i] = planes.get(i)[0];
+				this.maxDuration[i] = planes.get(i)[1];
+				this.typePlane[i] = planes.get(i)[2];
+
 			}
 		} else {
 			for (String s : schedule) {
 				String[] temp = s.split(":");
-				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3])};
+				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2]), Integer.parseInt(temp[3]), Integer.parseInt(temp[4])};
 				planes.add(planesByTF);
 			}
 			this.setnTracks(capacity.length);
@@ -90,15 +96,19 @@ public class AircraftLanding {
 			this.setTypePlane(new int[this.getnPlanes()]);
 
 			this.windowStart = new int[this.getnPlanes()];
-			this.windowDuration = new int[this.getnPlanes()];
+			this.minDuration = new int[this.getnPlanes()];
+			this.maxDuration = new int[this.getnPlanes()];
 			this.windowEnd = new int[this.getnPlanes()];
 
 			for (int i = 0; i < this.getnPlanes(); i++) {
 				this.windowStart[i] = planes.get(i)[0] * 60;
 				this.windowEnd[i] = planes.get(i)[1] * 60 + planes.get(i)[2];
 				//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
-				this.windowDuration[i] = this.windowEnd[i] - this.windowStart[i];
-				this.typePlane[i] = planes.get(i)[3];
+
+				this.minDuration[i] = planes.get(i)[3];
+				this.maxDuration[i] = planes.get(i)[4];
+				this.typePlane[i] = planes.get(i)[5];
+
 			}
 		}
 		this.sortCapacity();
@@ -117,7 +127,7 @@ public class AircraftLanding {
 		for (int i = 0; i < nPlanes; i++) {
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
 			//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
-			duration[i] = VariableFactory.bounded("Duration on airport " + i, 30, windowDuration[i], s);
+			duration[i] = VariableFactory.bounded("Duration on airport " + i, minDuration[i], maxDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
@@ -394,16 +404,19 @@ public class AircraftLanding {
 
 	private void setNewOrder(int[] planes) {
 		int[] oldWindowStart = this.windowStart;
-		int[] oldWindowDuration = this.windowDuration;
+		int[] oldMinDuration = this.minDuration;
+		int[] oldMaxDuration = this.maxDuration;
 		int[] oldWindowEnd = this.windowEnd;
 		int[] oldTypePlane = this.typePlane;
 		this.windowStart = new int[this.windowStart.length];
-		this.windowDuration = new int[this.windowDuration.length];
+		this.minDuration = new int[this.minDuration.length];
+		this.maxDuration = new int[this.maxDuration.length];
 		this.windowEnd = new int[this.windowEnd.length];
 		this.typePlane = new int[this.typePlane.length];
 		for (int i = 0; i < this.getnPlanes(); i++) {
 			this.windowStart[i] = oldWindowStart[planes[i]];
-			this.windowDuration[i] = oldWindowDuration[planes[i]];
+			this.minDuration[i] = oldMinDuration[planes[i]];
+			this.maxDuration[i]=oldMaxDuration[planes[i]];
 			this.windowEnd[i] = oldWindowEnd[planes[i]];
 			this.typePlane[i] = oldTypePlane[planes[i]];
 		}
@@ -533,13 +546,13 @@ public class AircraftLanding {
 	}
 
 
-	public int[] getWindowDuration() {
-		return windowDuration;
+	public int[] getMinDuration() {
+		return minDuration;
 	}
 
 
-	public void setWindowDuration(int[] windowDuration) {
-		this.windowDuration = windowDuration;
+	public void setWindowDuration(int[] minDuration) {
+		this.minDuration = minDuration;
 	}
 
 
