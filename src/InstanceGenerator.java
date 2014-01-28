@@ -91,7 +91,7 @@ public class InstanceGenerator {
 				int nbTracksAverage = 4 + r.nextInt(3);
 				capacity = new int[nbTracksAverage];
 				for (int i = 0; i < nbTracksAverage; i++) {
-					capacity[i] = 5 + r.nextInt(4);
+					capacity[i] = 12 + r.nextInt(4);
 				}
 				//int nbPlanesAverage = 80 + r.nextInt(50);
 				int nbPlanesAverage = 60; // + r.nextInt(50);
@@ -148,13 +148,13 @@ public class InstanceGenerator {
 
 			case GRAND:
 				//int nbTracksLarge = 5 + r.nextInt(3);
-				int nbTracksLarge = 6 + r.nextInt(3);
+				int nbTracksLarge = 10 + r.nextInt(3);
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
 					capacity[i] = 5 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
-				int nbPlanesLarge = 200;
+				int nbPlanesLarge = 300;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
