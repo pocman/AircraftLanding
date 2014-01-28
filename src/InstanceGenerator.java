@@ -37,7 +37,7 @@ public class InstanceGenerator {
 				//int nbPlanesSmall = 10 + r.nextInt(10);
 				//with random seed 100
 				//int nbPlanesSmall = 35 + r.nextInt(10); really really long
-				int nbPlanesSmall = 34 + r.nextInt(10);
+				int nbPlanesSmall = 35 + r.nextInt(10);
 
 				schedule = new String[nbPlanesSmall];
 				int random = r.nextInt(5);
@@ -154,7 +154,7 @@ public class InstanceGenerator {
 					capacity[i] = 5 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
-				int nbPlanesLarge = 150;
+				int nbPlanesLarge = 200;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);

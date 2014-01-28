@@ -97,7 +97,7 @@ public class AircraftLanding {
 			for(int i = 0 ; i < this.getnPlanes(); i++){
 				this.windowStart[i] = planes.get(i)[0]*60;
 				this.windowEnd[i] = planes.get(i)[1]*60+planes.get(i)[2];
-				//TODO Quentin : on doit pouvoir changer la durée en mettant une borne min et une borne max
+				//TODO Quentin : on doit pouvoir changer la durï¿½e en mettant une borne min et une borne max
 				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
 				this.typePlane[i] = planes.get(i)[3];
 			}
@@ -117,7 +117,7 @@ public class AircraftLanding {
 
 		for (int i = 0; i < nPlanes; i++) {
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
-			//TODO Quentin : on doit pouvoir changer la durée en mettant une borne min et une borne max
+			//TODO Quentin : on doit pouvoir changer la durï¿½e en mettant une borne min et une borne max
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, 30, windowDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks()-1, s);
@@ -140,7 +140,7 @@ public class AircraftLanding {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
 		}
 
-		//Pour chaque avion, on a son numéro de piste
+		//Pour chaque avion, on a son numï¿½ro de piste
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
@@ -148,7 +148,7 @@ public class AircraftLanding {
 			System.out.println();
 		}
 
-		//On ne peut pas avoir d'avions qui décollent ou attérissent la même minute.
+		//On ne peut pas avoir d'avions qui dï¿½collent ou attï¿½rissent la mï¿½me minute.
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 
 
@@ -179,6 +179,7 @@ public class AircraftLanding {
 //		ISF.inputOrder_InDomainMax(takeOff),
 //		ISF.inputOrder_InDomainMax(duration)));
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+				//IntStrategyFactory.inputOrder_InDomainMin(ArrayUtils.flatten(this.heightInCumulatives)),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),				
@@ -188,8 +189,11 @@ public class AircraftLanding {
 	}
 	
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.PETIT, 100, true, false);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.GRAND, 100, true, false);
 		Solver s = new Solver("aircraftLanding");
+		if(al == null) {
+			return;
+		}
 		al.model(s);
 		al.chooseStrategy();
 		al.solve();
@@ -408,7 +412,7 @@ public class AircraftLanding {
 			}
 			
 			System.out.println("");
-			System.out.print("load of track N° " + t + " of size " + this.capacity[t] + " : ");
+			System.out.print("load of track Nï¿½ " + t + " of size " + this.capacity[t] + " : ");
 			String s = "";
 			for (int key : asSortedList(interrestingPoints.keySet())) {
 				s = s + " " + interrestingPoints.get(key);
