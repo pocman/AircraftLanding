@@ -51,6 +51,7 @@ public class AircraftLanding {
 	int MAX_TIME = 60*24;
 	String[] schedule;
 	boolean utiliseMultiCumulative;
+	Solver s;
 
 	
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe, boolean multiCumulative){
@@ -107,6 +108,7 @@ public class AircraftLanding {
 
 	public void model(Solver s) {
 
+		this.s = s;
 		activityPlanes = new Task[nPlanes];
 		landing = new IntVar[nPlanes];
 		duration = new IntVar[nPlanes];
@@ -164,13 +166,13 @@ public class AircraftLanding {
 		
 	}
 	
-	public void solve(Solver s) {
+	public void solve() {
 		SMF.log(s, true, false);
 		//s.findSolution();
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
 	
-	public void chooseStrategy(Solver s) {
+	public void chooseStrategy() {
 //		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
 //		ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
 //		ISF.inputOrder_InDomainMin(landing),
@@ -186,11 +188,11 @@ public class AircraftLanding {
 	}
 	
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.MOYEN, 100, true, false);
+		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.PETIT, 100, true, false);
 		Solver s = new Solver("aircraftLanding");
 		al.model(s);
-		al.chooseStrategy(s);
-		al.solve(s);
+		al.chooseStrategy();
+		al.solve();
 		al.prettyOutput();
 		try {
 			al.csvOutput("test");
@@ -533,6 +535,9 @@ public class AircraftLanding {
 		return schedule;
 	}
 
+	public Solver getSolver(){
+		return this.s;
+	}
 
 
 

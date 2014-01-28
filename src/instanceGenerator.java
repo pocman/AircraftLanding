@@ -1,4 +1,8 @@
+import java.util.Arrays;
 import java.util.Random;
+
+import solver.Solver;
+import util.ESat;
 
 public class InstanceGenerator {
 
@@ -25,20 +29,21 @@ public class InstanceGenerator {
 			switch (tailleAeroport) {
 
 			case PETIT:
-				int nbTracksSmall = 1 + r.nextInt(2);
+				int nbTracksSmall = 2 + r.nextInt(2);
 				capacity = new int[nbTracksSmall];
 				for (int i = 0; i < nbTracksSmall; i++) {
 					capacity[i] = 3 + r.nextInt(3);
 				}
 				//int nbPlanesSmall = 10 + r.nextInt(10);
-				int nbPlanesSmall = 20 + r.nextInt(10);
+				//with random seed 100
+				//int nbPlanesSmall = 35 + r.nextInt(10); really really long
+				int nbPlanesSmall = 34 + r.nextInt(10);
 
 				schedule = new String[nbPlanesSmall];
 				int random = r.nextInt(5);
 				int nbType2 = 0;
 				for (int i = 0; i < nbPlanesSmall; i++) {
-					int fourchette = r.nextInt(40); // on prevoit une fenetre de
-													// 40 min max
+					int fourchette = r.nextInt(40); // on prevoit une fenetre de 40 min max
 					int type;
 					if (nbType2 < 2 * nbPlanesSmall / 5) {
 						type = 1 + r.nextInt(2);
@@ -284,7 +289,27 @@ public class InstanceGenerator {
 				break;
 			}
 		}
-		return new AircraftLanding(schedule, capacity, fenetreFixe, multiCumulative);
+		
+		//faire un test sur la possibilité d'une solution
+		int[] dummyCapacity = new int[]{0};
+		for(int capa : capacity){
+			dummyCapacity[0] += capa;
+		}
+		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, fenetreFixe, false);
+		Solver sDummy = new Solver("aircraftLanding_dummy");
+		alDummy.model(sDummy);
+		alDummy.chooseStrategy();
+		alDummy.solve();
+		alDummy.prettyOutput();
+		
+		
+		if(alDummy.getSolver().isFeasible() == ESat.TRUE)			
+			return new AircraftLanding(schedule, capacity, fenetreFixe, multiCumulative);
+		else{
+			System.out.println("pas de solution");
+			return null;
+		}
+		
 	}
 
 	public static void main(String[] args) {
