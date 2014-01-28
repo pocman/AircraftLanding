@@ -43,7 +43,8 @@ public class InstanceGenerator {
 				int random = r.nextInt(5);
 				int nbType2 = 0;
 				for (int i = 0; i < nbPlanesSmall; i++) {
-					int fourchette = r.nextInt(40); // on prevoit une fenetre de 40 min max
+					int minDuration = 30+r.nextInt(30); // duree de stationnement mini entre 30m et 1h
+					int maxDuration = minDuration+r.nextInt(45);
 					int type;
 					if (nbType2 < 2 * nbPlanesSmall / 5) {
 						type = 1 + r.nextInt(2);
@@ -53,32 +54,33 @@ public class InstanceGenerator {
 					schedule[i] = "";
 					if (i < nbPlanesSmall / 15) {
 						schedule[i] += "6:8:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 2 * nbPlanesSmall / 15) {
 						schedule[i] += "8:10:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 4 * nbPlanesSmall / 15) {
 						schedule[i] += "10:12:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 7 * nbPlanesSmall / 15) {
 						schedule[i] += "12:14:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 10 * nbPlanesSmall / 15) {
 						schedule[i] += "14:16:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 12 * nbPlanesSmall / 15) {
 						schedule[i] += "16:18:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 13 * nbPlanesSmall / 15) {
 						schedule[i] += "18:20:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 14 * nbPlanesSmall / 15) {
 						schedule[i] += "20:22:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else {
 						schedule[i] += "22:24:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					}
+					schedule[i] += ":"+String.valueOf(maxDuration);
 					schedule[i] += ":";
 					schedule[i] += String.valueOf(type);
 					if (type == 2) {
@@ -101,8 +103,8 @@ public class InstanceGenerator {
 				int random3 = r.nextInt(14);
 				int nbType3 = 0;
 				for (int i = 0; i < nbPlanesAverage; i++) {
-					int fourchette = r.nextInt(40); // on prevoit une fenetre de
-													// 40 min max
+					int minDuration = 30+r.nextInt(30); 
+					int maxDuration = minDuration+r.nextInt(45);
 					int type;
 					if (nbType3 < nbPlanesAverage / 2) {
 						type = 1 + r.nextInt(3);
@@ -112,32 +114,33 @@ public class InstanceGenerator {
 					schedule[i] = "";
 					if (i < nbPlanesAverage / 15) {
 						schedule[i] += "6:8:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 2 * nbPlanesAverage / 15) {
 						schedule[i] += "8:10:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 4 * nbPlanesAverage / 15) {
 						schedule[i] += "10:12:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 7 * nbPlanesAverage / 15) {
 						schedule[i] += "12:14:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 10 * nbPlanesAverage / 15) {
 						schedule[i] += "14:16:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 12 * nbPlanesAverage / 15) {
 						schedule[i] += "16:18:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 13 * nbPlanesAverage / 15) {
 						schedule[i] += "18:20:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 14 * nbPlanesAverage / 15) {
 						schedule[i] += "20:22:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else {
 						schedule[i] += "22:24:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					}
+					schedule[i] += ":"+String.valueOf(maxDuration);
 					schedule[i] += ":";
 					schedule[i] += String.valueOf(type);
 					if (type == 3) {
@@ -160,8 +163,8 @@ public class InstanceGenerator {
 				int random4 = r.nextInt(80);
 				int nbType3bis = 0;
 				for (int i = 0; i < nbPlanesLarge; i++) {
-					int fourchette = r.nextInt(40); // on prevoit une fenetre de
-													// 40 min max
+					int minDuration = 30+r.nextInt(30); 
+					int maxDuration = minDuration+r.nextInt(45);					
 					int type;
 					if (nbType3bis < 2 * nbPlanesLarge / 3) {
 						type = 1 + r.nextInt(3);
@@ -171,32 +174,33 @@ public class InstanceGenerator {
 					schedule[i] = "";
 					if (i < nbPlanesLarge / 15) {
 						schedule[i] += "6:8:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 2 * nbPlanesLarge / 15) {
 						schedule[i] += "8:10:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 4 * nbPlanesLarge / 15) {
 						schedule[i] += "10:12:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 7 * nbPlanesLarge / 15) {
 						schedule[i] += "12:14:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 10 * nbPlanesLarge / 15) {
 						schedule[i] += "14:16:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 12 * nbPlanesLarge / 15) {
 						schedule[i] += "16:18:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 13 * nbPlanesLarge / 15) {
 						schedule[i] += "18:20:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else if (i < 14 * nbPlanesLarge / 15) {
 						schedule[i] += "20:22:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					} else {
 						schedule[i] += "22:24:";
-						schedule[i] += String.valueOf(fourchette);
+						schedule[i] += String.valueOf(minDuration);
 					}
+					schedule[i] += ":"+String.valueOf(maxDuration);
 					schedule[i] += ":";
 					schedule[i] += String.valueOf(type);
 					if (type == 3) {
@@ -223,13 +227,14 @@ public class InstanceGenerator {
 				schedule = new String[nbPlanesSmall];
 				int random = r.nextInt(5);
 				for (int i = 0; i < nbPlanesSmall; i++) {
-					String timeWindow = String.valueOf(30 + r.nextInt(240)); // max
-																				// landing
-																				// duration
+					int minDuration=30 + r.nextInt(90);
+					String startWindow = String.valueOf(minDuration);
+					String endWindow = String.valueOf(minDuration+r.nextInt(150));															// landing
+																			
 					if (i < 2 * nbPlanesSmall / 3 - 2 + random) {
-						schedule[i] = timeWindow + ":1";
+						schedule[i] = startWindow + endWindow + ":1";
 					} else {
-						schedule[i] = timeWindow + ":2";
+						schedule[i] = startWindow + endWindow + ":2";
 					}
 				}
 				break;
@@ -246,15 +251,16 @@ public class InstanceGenerator {
 				int random2 = r.nextInt(24);
 				int random3 = r.nextInt(14);
 				for (int i = 0; i < nbPlanesAverage; i++) {
-					String timeWindow = String.valueOf(30 + r.nextInt(240)); // max
-																				// landing
-																				// duration
+					int minDuration=30 + r.nextInt(90);
+					String startWindow = String.valueOf(minDuration);
+					String endWindow = String.valueOf(minDuration+r.nextInt(150));
+					
 					if (i < nbPlanesAverage / 2 - 10 + random2) {
-						schedule[i] = timeWindow + ":1";
+						schedule[i] = startWindow + endWindow + ":1";
 					} else if (i < 3 * nbPlanesAverage / 4 - 5 + random3) {
-						schedule[i] = timeWindow + ":2";
+						schedule[i] = startWindow + endWindow + ":2";
 					} else {
-						schedule[i] = timeWindow + ":3";
+						schedule[i] = startWindow + endWindow + ":3";
 					}
 				}
 				break;
@@ -270,15 +276,16 @@ public class InstanceGenerator {
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
 				for (int i = 0; i < nbPlanesLarge; i++) {
-					String timeWindow = String.valueOf(30 + r.nextInt(240)); // max
-																				// landing
-																				// duration
+					int minDuration=30 + r.nextInt(90);
+					String startWindow = String.valueOf(minDuration);
+					String endWindow = String.valueOf(minDuration+r.nextInt(150));
+					
 					if (i < nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = timeWindow + ":1";
+						schedule[i] = startWindow + endWindow + ":1";
 					} else if (i < 2 * nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = timeWindow + ":2";
+						schedule[i] = startWindow + endWindow + ":2";
 					} else {
-						schedule[i] = timeWindow + ":3";
+						schedule[i] = startWindow + endWindow + ":3";
 					}
 				}
 				break;
@@ -295,7 +302,7 @@ public class InstanceGenerator {
 		for(int capa : capacity){
 			dummyCapacity[0] += capa;
 		}
-		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, fenetreFixe, false);
+		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
 		Solver sDummy = new Solver("aircraftLanding_dummy");
 		alDummy.model(sDummy);
 		alDummy.chooseStrategy();
@@ -326,7 +333,7 @@ public class InstanceGenerator {
 		int[] capacity = instance.getCapacity();
 		for (int i = 0; i < capacity.length; i++) {
 			System.out.println("Piste " + i);
-			System.out.println("Capacit� : " + capacity[i]);
+			System.out.println("Capacite : " + capacity[i]);
 			System.out.println("");
 		}
 	}
