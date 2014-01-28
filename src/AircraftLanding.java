@@ -171,6 +171,7 @@ public class AircraftLanding {
 
 	public void solve() {
 		SMF.log(s, true, false);
+		SMF.limitTime(s,35000);
 		//s.findSolution();
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
