@@ -130,19 +130,7 @@ public class AircraftLanding {
 		
 		//Cassage de symetrie
 		System.out.println("Utiliser un cassage de symetrie qui peut ralentir la recherche de solution");
-		sumByTracks = VF.boundedArray("sum planes by track", nTracks, 0,  nPlanes, s);
-		for(int t = 0; t < nTracks; t++)
-			s.post(ICF.sum(tracks[t], sumByTracks[t]));
-		
-		for(int t1 = 0; t1 < nTracks -1; t1++){
-			for(int t2 = t1+1; t2 < nTracks; t2++){
-				if(this.capacity[t1] == this.capacity[t2]){
-					//System.out.println(this.capacity[t1] + " == " + this.capacity[t2]);
-					s.post(ICF.arithm(this.sumByTracks[t1], ">=", this.sumByTracks[t2]));
-					//System.out.println(this.sumByTracks[t1].toString() + " >= " + this.sumByTracks[t2].toString() );
-				}
-			}
-		}
+		this.symetrieBreaking(s);
 		
 		
 		//Un avion ne peut etre que sur une seule piste
@@ -159,7 +147,6 @@ public class AircraftLanding {
 		}
 
 		//On ne peut pas avoir d'avions qui décollent ou attérissent la même minute.
-		//TODO : Lucas possibilité d'amérioration ici
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 
 
@@ -168,93 +155,11 @@ public class AircraftLanding {
 
 		if (utiliseMultiCumulative) {
 			System.out.println("Utilise la contrainte multidimensionnelle");
-			heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
-					this.getnPlanes(), this.getnTracks(), 0,
-					this.setOfTypes[this.setOfTypes.length - 1], s);
-			for (int u = 0; u < this.getnTracks(); u++) {
-				for (int v = 0; v < this.getnPlanes(); v++) {
-					s.post(IntConstraintFactory.times(
-							VariableFactory.fixed(this.typePlane[v], s),
-							this.tracks[u][v], heightInCumulatives[v][u]));
-					// System.out.print(heightInCumulatives[v][u] + " ,");
-				}
-			}
-
-			int[][] successors = new int[this.activityPlanes.length][0];
-
-			vCapacities = new IntVar[this.capacity.length];
-			for (int c = 0; c < this.capacity.length; c++) {
-				vCapacities[c] = VF.fixed(this.capacity[c], s);
-			}
-
-			int nbTasks = this.activityPlanes.length;
-			int nbResources = vCapacities.length;
-
-			int[] resourceType = new int[nbResources];
-			for (int i = 0; i < this.nTracks; i++) {
-				resourceType[i] = 0;
-			}
-
-			int[] interestingTimePoints = new int[0];
-			int[] interestingResources = new int[0];
-
-			int nbInterestingTimePoints = interestingTimePoints.length;
-			int nbInterestingResources = interestingResources.length;
-
-			vLoads = new IntVar[nbInterestingTimePoints][nbInterestingResources];
-			for (int i = 0; i < nbInterestingTimePoints; i++) {
-				for (int j = 0; j < nbInterestingResources; j++) {
-					vLoads[i][j] = VariableFactory.bounded("load_"
-							+ interestingTimePoints[i], 0,
-							this.capacity[interestingResources[j]], s);
-				}
-			}
-
-			int hIdx = 3 * nbTasks;
-			IntVar[] allVars = new IntVar[hIdx + nbTasks * nbResources
-					+ nbResources + nbInterestingTimePoints
-					* nbInterestingResources];
-			for (int t = 0; t < nbTasks; t++) {
-				allVars[t] = this.landing[t];
-				allVars[t + nbTasks] = this.duration[t];
-				allVars[t + 2 * nbTasks] = this.takeOff[t];
-				for (int r = 0; r < nbResources; r++) {
-					allVars[hIdx + t * nbResources + r] = heightInCumulatives[t][r];
-				}
-			}
-			int cIdx = hIdx + nbTasks * nbResources;
-			for (int r = 0; r < nbResources; r++) {
-				allVars[cIdx + r] = vCapacities[r];
-			}
-			int lIdx = cIdx + nbResources;
-			for (int i = 0; i < nbInterestingTimePoints; i++) {
-				for (int j = 0; j < nbInterestingResources; j++) {
-					allVars[lIdx + i * nbInterestingResources + j] = vLoads[i][j];
-				}
-			}
-
-			Constraint c = new Constraint(allVars, s);
-			c.addPropagators(new PropTTPCDynamicSweepLoads(allVars, nbTasks,
-					nbResources, this.capacity, successors, resourceType,
-					interestingTimePoints, interestingResources));
-			s.post(c);
+			this.multiCumulative(s);
+			
 		} else {
 			System.out.println("N'utiliser PAS la contrainte multidimensionnelle");
-			heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
-					this.getnPlanes(), this.getnTracks(), 0,
-					this.setOfTypes[this.setOfTypes.length - 1], s);
-			for (int u = 0; u < this.getnTracks(); u++) {
-				for (int v = 0; v < this.getnPlanes(); v++) {
-					s.post(IntConstraintFactory.times(
-							VariableFactory.fixed(this.typePlane[v], s),
-							this.tracks[u][v], heightInCumulatives[v][u]));
-					System.out.print(heightInCumulatives[v][u] + " ,");
-				}
-				System.out.println();
-				s.post(IntConstraintFactory.cumulative(activityPlanes,
-						ArrayUtils.getColumn(heightInCumulatives,u),
-						VariableFactory.fixed(this.getCapacity()[u], s)));
-			}
+			this.simpleCumulative(s);				
 		}	
 		
 	}
@@ -307,7 +212,113 @@ public class AircraftLanding {
 		s.post(ICF.sum(brokenConstraint, minBreak));
 	}
 
+	private void simpleCumulative(Solver s) {
+		heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
+				this.getnPlanes(), this.getnTracks(), 0,
+				this.setOfTypes[this.setOfTypes.length - 1], s);
+		for (int u = 0; u < this.getnTracks(); u++) {
+			for (int v = 0; v < this.getnPlanes(); v++) {
+				s.post(IntConstraintFactory.times(
+						VariableFactory.fixed(this.typePlane[v], s),
+						this.tracks[u][v], heightInCumulatives[v][u]));
+				System.out.print(heightInCumulatives[v][u] + " ,");
+			}
+			System.out.println();
+			s.post(IntConstraintFactory.cumulative(activityPlanes,
+					ArrayUtils.getColumn(heightInCumulatives,u),
+					VariableFactory.fixed(this.getCapacity()[u], s)));
+		}
+	}
+	
+	private void symetrieBreaking(Solver s) {
+		sumByTracks = VF.boundedArray("sum planes by track", nTracks, 0,  nPlanes, s);
+		for(int t = 0; t < nTracks; t++)
+			s.post(ICF.sum(tracks[t], sumByTracks[t]));
+		
+		for(int t1 = 0; t1 < nTracks -1; t1++){
+			for(int t2 = t1+1; t2 < nTracks; t2++){
+				if(this.capacity[t1] == this.capacity[t2]){
+					//System.out.println(this.capacity[t1] + " == " + this.capacity[t2]);
+					s.post(ICF.arithm(this.sumByTracks[t1], ">=", this.sumByTracks[t2]));
+					//System.out.println(this.sumByTracks[t1].toString() + " >= " + this.sumByTracks[t2].toString() );
+				}
+			}
+		}
+	}
 
+	private void multiCumulative(Solver s) {
+		heightInCumulatives = VF.enumeratedMatrix("heightInCumulative",
+				this.getnPlanes(), this.getnTracks(), 0,
+				this.setOfTypes[this.setOfTypes.length - 1], s);
+		for (int u = 0; u < this.getnTracks(); u++) {
+			for (int v = 0; v < this.getnPlanes(); v++) {
+				s.post(IntConstraintFactory.times(
+						VariableFactory.fixed(this.typePlane[v], s),
+						this.tracks[u][v], heightInCumulatives[v][u]));
+				// System.out.print(heightInCumulatives[v][u] + " ,");
+			}
+		}
+
+		int[][] successors = new int[this.activityPlanes.length][0];
+
+		vCapacities = new IntVar[this.capacity.length];
+		for (int c = 0; c < this.capacity.length; c++) {
+			vCapacities[c] = VF.fixed(this.capacity[c], s);
+		}
+
+		int nbTasks = this.activityPlanes.length;
+		int nbResources = vCapacities.length;
+
+		int[] resourceType = new int[nbResources];
+		for (int i = 0; i < this.nTracks; i++) {
+			resourceType[i] = 0;
+		}
+
+		int[] interestingTimePoints = new int[0];
+		int[] interestingResources = new int[0];
+
+		int nbInterestingTimePoints = interestingTimePoints.length;
+		int nbInterestingResources = interestingResources.length;
+
+		vLoads = new IntVar[nbInterestingTimePoints][nbInterestingResources];
+		for (int i = 0; i < nbInterestingTimePoints; i++) {
+			for (int j = 0; j < nbInterestingResources; j++) {
+				vLoads[i][j] = VariableFactory.bounded("load_"
+						+ interestingTimePoints[i], 0,
+						this.capacity[interestingResources[j]], s);
+			}
+		}
+
+		int hIdx = 3 * nbTasks;
+		IntVar[] allVars = new IntVar[hIdx + nbTasks * nbResources
+				+ nbResources + nbInterestingTimePoints
+				* nbInterestingResources];
+		for (int t = 0; t < nbTasks; t++) {
+			allVars[t] = this.landing[t];
+			allVars[t + nbTasks] = this.duration[t];
+			allVars[t + 2 * nbTasks] = this.takeOff[t];
+			for (int r = 0; r < nbResources; r++) {
+				allVars[hIdx + t * nbResources + r] = heightInCumulatives[t][r];
+			}
+		}
+		int cIdx = hIdx + nbTasks * nbResources;
+		for (int r = 0; r < nbResources; r++) {
+			allVars[cIdx + r] = vCapacities[r];
+		}
+		int lIdx = cIdx + nbResources;
+		for (int i = 0; i < nbInterestingTimePoints; i++) {
+			for (int j = 0; j < nbInterestingResources; j++) {
+				allVars[lIdx + i * nbInterestingResources + j] = vLoads[i][j];
+			}
+		}
+
+		Constraint c = new Constraint(allVars, s);
+		c.addPropagators(new PropTTPCDynamicSweepLoads(allVars, nbTasks,
+				nbResources, this.capacity, successors, resourceType,
+				interestingTimePoints, interestingResources));
+		s.post(c);		
+	}
+	
 	private void sortCapacity() {
 		Arrays.sort(capacity);
 		ArrayUtils.reverse(capacity);
