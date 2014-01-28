@@ -23,6 +23,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
+
+import display.Representation;
 
 
 public class AircraftLanding {
@@ -31,7 +34,7 @@ public class AircraftLanding {
 	 * @param args
 	 */
 	Random r = new Random(42);
-	
+
 	Task[] activityPlanes;
 	IntVar[] duration, landing, takeOff; //for each plane
 	IntVar[][] tracks; //binary variable
@@ -53,7 +56,7 @@ public class AircraftLanding {
 	boolean utiliseMultiCumulative;
 	Solver s;
 
-	
+
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe, boolean multiCumulative){
 		this.schedule=schedule;
 		this.utiliseMultiCumulative = multiCumulative;
@@ -64,16 +67,16 @@ public class AircraftLanding {
 				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1])};
 				planes.add(planesByTF);
 			}
-		
+
 			this.setnTracks(capacity.length);
 			this.setCapacity(capacity);
 			this.setnPlanes(planes.size());
 			this.setTypePlane(new int[this.getnPlanes()]);
-		
+
 			this.windowStart = new int[this.getnPlanes()];
 			this.windowDuration = new int[this.getnPlanes()];
 			this.windowEnd = new int[this.getnPlanes()];
-		
+
 			for(int i = 0 ; i < this.getnPlanes(); i++){
 				this.windowDuration[i] = planes.get(i)[0];
 				this.typePlane[i] = planes.get(i)[1];
@@ -89,15 +92,15 @@ public class AircraftLanding {
 			this.setCapacity(capacity);
 			this.setnPlanes(planes.size());
 			this.setTypePlane(new int[this.getnPlanes()]);
-		
+
 			this.windowStart = new int[this.getnPlanes()];
 			this.windowDuration = new int[this.getnPlanes()];
 			this.windowEnd = new int[this.getnPlanes()];
-		
+
 			for(int i = 0 ; i < this.getnPlanes(); i++){
 				this.windowStart[i] = planes.get(i)[0]*60;
 				this.windowEnd[i] = planes.get(i)[1]*60+planes.get(i)[2];
-				//TODO Quentin : on doit pouvoir changer la dur�e en mettant une borne min et une borne max
+				//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
 				this.windowDuration[i] = this.windowEnd[i]-this.windowStart[i];
 				this.typePlane[i] = planes.get(i)[3];
 			}
@@ -117,7 +120,7 @@ public class AircraftLanding {
 
 		for (int i = 0; i < nPlanes; i++) {
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
-			//TODO Quentin : on doit pouvoir changer la dur�e en mettant une borne min et une borne max
+			//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, 30, windowDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks()-1, s);
@@ -125,22 +128,22 @@ public class AircraftLanding {
 			System.out.println("type of plane " + i + " :" + typePlane[i]);
 			System.out.println(landing[i]);
 		}
-		
+
 
 		//for each plane which track, it's on
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
-		
+
 		//Cassage de symetrie
 		System.out.println("Utiliser un cassage de symetrie qui peut ralentir la recherche de solution");
 		this.symetrieBreaking(s);
-		
-		
+
+
 		//Un avion ne peut etre que sur une seule piste
 		for (int plane = 0; plane < nPlanes; plane++) {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
 		}
 
-		//Pour chaque avion, on a son num�ro de piste
+		//Pour chaque avion, on a son numero de piste
 		for (int i = 0; i < nTracks; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
@@ -148,7 +151,7 @@ public class AircraftLanding {
 			System.out.println();
 		}
 
-		//On ne peut pas avoir d'avions qui d�collent ou att�rissent la m�me minute.
+		//On ne peut pas avoir d'avions qui decollent ou atterissent la meme minute.
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 
 
@@ -158,28 +161,27 @@ public class AircraftLanding {
 		if (utiliseMultiCumulative) {
 			System.out.println("Utilise la contrainte multidimensionnelle");
 			this.multiCumulative(s);
-			
+
 		} else {
 			System.out.println("N'utiliser PAS la contrainte multidimensionnelle");
 			this.simpleCumulative(s);				
 		}	
-		
+
 	}
-	
+
 	public void solve() {
 		SMF.log(s, true, false);
 		//s.findSolution();
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
-	
+
 	public void chooseStrategy() {
-//		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-//		ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
-//		ISF.inputOrder_InDomainMin(landing),
-//		ISF.inputOrder_InDomainMax(takeOff),
-//		ISF.inputOrder_InDomainMax(duration)));
+		//		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+		//		ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
+		//		ISF.inputOrder_InDomainMin(landing),
+		//		ISF.inputOrder_InDomainMax(takeOff),
+		//		ISF.inputOrder_InDomainMax(duration)));
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-				//IntStrategyFactory.inputOrder_InDomainMin(ArrayUtils.flatten(this.heightInCumulatives)),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),				
@@ -187,13 +189,51 @@ public class AircraftLanding {
 				//IntStrategyFactory.firstFail_InDomainMiddle(this.sumByTracks)
 				));
 	}
-	
+
 	public static void main(String[] args) {
-		AircraftLanding al = InstanceGenerator.generator(InstanceGenerator.TAILLE_AEROPORT.GRAND, 100, true, false);
-		Solver s = new Solver("aircraftLanding");
-		if(al == null) {
-			return;
+		System.out.println(Representation.AIR_FORCE_ONE);
+		System.out.println();
+		System.out.println(Representation.START);
+		System.out.println();
+		System.out.println("Bienvenue dans le solveur de l'equipe Air Force One");
+		System.out.println("A l'aide de cet outil, vous pourrez resoudre les problemes de gestion d'aeroport");
+		System.out.println();
+		Scanner sc = new Scanner(System.in);
+		String reponse;
+		do{
+			System.out.println("Veuillez choisir la taille de l'aeroport (petit, moyen ou grand)");
+			reponse = sc.next();
 		}
+		while(!(reponse.equals("petit") || reponse.equals("moyen") || reponse.equals("grand")));
+		InstanceGenerator.TAILLE_AEROPORT taille;
+		if(reponse.equals("petit")) taille = InstanceGenerator.TAILLE_AEROPORT.PETIT;
+		else if(reponse.equals("moyen")) taille = InstanceGenerator.TAILLE_AEROPORT.MOYEN;
+		else taille = InstanceGenerator.TAILLE_AEROPORT.GRAND;
+		do{
+			System.out.println("Veuillez entrer un entier (Afin d'assurer l'unicite de l'aeroport)");
+			reponse = sc.next();
+		}
+		while((Integer.parseInt(reponse) < 0));
+		int alea = Integer.parseInt(reponse);
+		do{
+			System.out.println("Voulez-vous utiliser des fenetres de temps de stationnement fixes? (y/n)");
+			reponse = sc.next();
+		}
+		while(!(reponse.equals("y") || reponse.equals("n")));
+		boolean fenetresFixes;
+		if(reponse.equals("y")) fenetresFixes = true;
+		else fenetresFixes = false;
+		do{
+			System.out.println("Voulez-vous utiliser la contrainte multiCumulative? (y/n)");
+			reponse = sc.next();
+		}
+		while(!(reponse.equals("y") || reponse.equals("n")));
+		boolean multiCumulative;
+		if(reponse.equals("y")) multiCumulative = true;
+		else multiCumulative = false;
+
+		AircraftLanding al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
+		Solver s = new Solver("aircraftLanding");
 		al.model(s);
 		al.chooseStrategy();
 		al.solve();
@@ -204,7 +244,7 @@ public class AircraftLanding {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void contraintePrecedence(Solver s) {
 		IntVar[] brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes * nPlanes, s);
@@ -235,12 +275,12 @@ public class AircraftLanding {
 					VariableFactory.fixed(this.getCapacity()[u], s)));
 		}
 	}
-	
+
 	private void symetrieBreaking(Solver s) {
 		sumByTracks = VF.boundedArray("sum planes by track", nTracks, 0,  nPlanes, s);
 		for(int t = 0; t < nTracks; t++)
 			s.post(ICF.sum(tracks[t], sumByTracks[t]));
-		
+
 		for(int t1 = 0; t1 < nTracks -1; t1++){
 			for(int t2 = t1+1; t2 < nTracks; t2++){
 				if(this.capacity[t1] == this.capacity[t2]){
@@ -297,8 +337,8 @@ public class AircraftLanding {
 
 		int hIdx = 3 * nbTasks;
 		IntVar[] allVars = new IntVar[hIdx + nbTasks * nbResources
-				+ nbResources + nbInterestingTimePoints
-				* nbInterestingResources];
+		                              + nbResources + nbInterestingTimePoints
+		                              * nbInterestingResources];
 		for (int t = 0; t < nbTasks; t++) {
 			allVars[t] = this.landing[t];
 			allVars[t + nbTasks] = this.duration[t];
@@ -324,7 +364,7 @@ public class AircraftLanding {
 				interestingTimePoints, interestingResources));
 		s.post(c);		
 	}
-	
+
 	private void sortCapacity() {
 		Arrays.sort(capacity);
 		ArrayUtils.reverse(capacity);
@@ -386,7 +426,7 @@ public class AircraftLanding {
 				}
 
 			}
-			
+
 			//On calcul la charge pour chaque point d'interet
 			int previousValue = 0;
 			int justLanded;
@@ -404,15 +444,15 @@ public class AircraftLanding {
 						justTookOff += this.typePlane[plane];
 						//System.out.println("time : " + keyPoints + " tookOff : " + justTookOff);
 					}			
-					
+
 				}
 				previousValue =  previousValue + justLanded - justTookOff;
 				System.out.print(" keyPoints : " +keyPoints + " previous value : " + previousValue);
 				interrestingPoints.put(keyPoints, previousValue);				
 			}
-			
+
 			System.out.println("");
-			System.out.print("load of track N� " + t + " of size " + this.capacity[t] + " : ");
+			System.out.print("load of track Number " + t + " of size " + this.capacity[t] + " : ");
 			String s = "";
 			for (int key : asSortedList(interrestingPoints.keySet())) {
 				s = s + " " + interrestingPoints.get(key);
@@ -420,12 +460,12 @@ public class AircraftLanding {
 			System.out.println(s);
 		}
 	}
-	
+
 	public static
 	<T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
-	  List<T> list = new ArrayList<T>(c);
-	  java.util.Collections.sort(list);
-	  return list;
+		List<T> list = new ArrayList<T>(c);
+		java.util.Collections.sort(list);
+		return list;
 	}
 
 	/**
@@ -445,13 +485,13 @@ public class AircraftLanding {
 
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
-		
+
 		//Les pistes
 		bw.write("idtrack; capacity" + "\n");
 		for(int track = 0; track < this.getnTracks(); track++){
 			bw.write(track + "; " + this.capacity[track] + " \n");
 		}
-		
+
 		//Les avions		
 		bw.write("idPlane; idtrack; arrivalTime; departureTime; duration; capacity" + "\n");
 		for (int plane = 0; plane < nPlanes; plane++) {

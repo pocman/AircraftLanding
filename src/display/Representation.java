@@ -22,15 +22,17 @@ public class Representation {
 			System.getProperty("line.separator")+"      ___/___|__/                                 ___________________________/"+System.getProperty("line.separator")+
 			" __---' _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _______/| ______________________  ="+System.getProperty("line.separator")+"   ----__________________________________________\\|_________________________=";
 	public static final String NO_PLANE = System.getProperty("line.separator")+System.getProperty("line.separator")+System.getProperty("line.separator");
-	public static final String START = "###########################################"+System.getProperty("line.separator")+
-			"||    __|__        __|__        __|__    ||"+System.getProperty("line.separator")+
-			"|| *---o0o---*  *---o0o---*  *---o0o---* ||"+System.getProperty("line.separator")+
-			"###########################################";
-	
-	
-	public static void main(String[] args){
-		System.out.println(Representation.DEPART_GRAND_AVION);
-		System.out.println();
-		System.out.println(Representation.ARRIVEE_GRAND_AVION);
-	}
+	public static final String START = "                              ###########################################"+System.getProperty("line.separator")+
+			"                              ||    __|__        __|__        __|__    ||"+System.getProperty("line.separator")+
+			"                              || *---o0o---*  *---o0o---*  *---o0o---* ||"+System.getProperty("line.separator")+
+			"                              ###########################################";
+	public static final String AIR_FORCE_ONE = " $$$$$$\\  $$\\                 $$$$$$$$\\                                             $$$$$$\\                      "+ System.getProperty("line.separator")+
+			"$$  __$$\\ \\__|                $$  _____|                                           $$  __$$\\                     "+System.getProperty("line.separator")+
+			"$$ /  $$ |$$\\  $$$$$$\\        $$ |    $$$$$$\\   $$$$$$\\   $$$$$$$\\  $$$$$$\\        $$ /  $$ |$$$$$$$\\   $$$$$$\\ "+System.getProperty("line.separator")+
+			"$$$$$$$$ |$$ |$$  __$$\\       $$$$$\\ $$  __$$\\ $$  __$$\\ $$  _____|$$  __$$\\       $$ |  $$ |$$  __$$\\ $$  __$$\\+"+System.getProperty("line.separator")+
+			"$$  __$$ |$$ |$$ |  \\__|      $$  __|$$ /  $$ |$$ |  \\__|$$ /      $$$$$$$$ |      $$ |  $$ |$$ |  $$ |$$$$$$$$ |"+System.getProperty("line.separator")+
+			"$$ |  $$ |$$ |$$ |            $$ |   $$ |  $$ |$$ |      $$ |      $$   ____|      $$ |  $$ |$$ |  $$ |$$   ____|"+System.getProperty("line.separator")+
+			"$$ |  $$ |$$ |$$ |            $$ |   \\$$$$$$  |$$ |      \\$$$$$$$\\ \\$$$$$$$\\        $$$$$$  |$$ |  $$ |\\$$$$$$$\\ "+System.getProperty("line.separator")+
+			"\\__|  \\__|\\__|\\__|            \\__|    \\______/ \\__|       \\_______| \\_______|       \\______/ \\__|  \\__| \\_______|"+System.getProperty("line.separator");
+
 }
