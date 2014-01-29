@@ -297,9 +297,9 @@ public class InstanceGenerator {
 			}
 		}
 		
-		for(String s : schedule){
-			System.out.println(s);
-		}
+//		for(String s : schedule){
+//			System.out.println(s);
+//		}
 		
 		//faire un test sur la possibilit� d'une solution
 		int[] dummyCapacity = new int[]{0};

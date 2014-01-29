@@ -103,10 +103,9 @@ public class AircraftLanding {
 			for (int i = 0; i < this.getnPlanes(); i++) {
 				this.windowStart[i] = planes.get(i)[0] * 60;
 				this.windowEnd[i] = planes.get(i)[1] * 60;
-				this.minDuration[i] = 30; //planes.get(i)[2];
+				this.minDuration[i] = planes.get(i)[2];
 				this.maxDuration[i] = planes.get(i)[3];
 				this.typePlane[i] = planes.get(i)[4];
-
 			}
 		}
 		this.sortCapacity();
@@ -162,7 +161,6 @@ public class AircraftLanding {
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 
 
-		System.out.println("Contrainte de precedence");
 		//contrainte souple de precedence entre les avions
 		this.contraintePrecedence(s, precedence);
 
@@ -176,7 +174,7 @@ public class AircraftLanding {
 		}
 
 	}
-
+	
 	public void solve() {
 		SMF.log(s, true, false);
 		//SMF.limitTime(s, 35000);
@@ -185,15 +183,10 @@ public class AircraftLanding {
 	}
 
 	public void chooseStrategy() {
-		//		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-		//		ISF.inputOrder_InDomainMax(ArrayUtils.flatten(tracks)),
-		//		ISF.inputOrder_InDomainMin(landing),
-		//		ISF.inputOrder_InDomainMax(takeOff),
-		//		ISF.inputOrder_InDomainMax(duration)));
+
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-				IntStrategyFactory.inputOrder_InDomainMin(brokenConstraint),
-				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
+				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),				
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
 		));
@@ -240,10 +233,20 @@ public class AircraftLanding {
 		boolean multiCumulative;
 		if (reponse.equals("y")) multiCumulative = true;
 		else multiCumulative = false;
+		
+		do {
+			System.out.println("Voulez-vous utiliser la contrainte de précédence? (y/n)");
+			reponse = sc.next();
+		}
+		while (!(reponse.equals("y") || reponse.equals("n")));
+		boolean precedence;
+		if (reponse.equals("y")) precedence = true;
+		else precedence = false;
+
 
 		AircraftLanding al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
 		Solver s = new Solver("aircraftLanding");
-		al.model(s, true);
+		al.model(s, precedence);
 		al.chooseStrategy();
 		al.solve();
 		al.prettyOutput();
@@ -254,8 +257,20 @@ public class AircraftLanding {
 		}
 	}
 
-	public void contraintePrecedence(Solver s, boolean precedence) {
+	public int violationPrecedence(){
+		int violation = 0;
+		for (int i = 0; i < nPlanes; i++) {
+			for (int j = 0; j < nPlanes; j++) {
+				if(this.landing[i].getValue() <= this.landing[j].getValue() && this.takeOff[i].getValue()>this.takeOff[j].getValue())
+					violation++;
+			}
+		}
+		return violation;
+	}
+	
+	private void contraintePrecedence(Solver s, boolean precedence) {
 		if(precedence){
+		System.out.println("Utilise d'une contrainte de precedence");
 		brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
 		for (int i = 0; i < nPlanes; i++) {
@@ -288,6 +303,7 @@ public class AircraftLanding {
 		s.post(ICF.sum(brokenConstraint, minBreak));
 		}
 		else{
+			System.out.println("N'utilise PAS une contrainte de precedence");
 			brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 			minBreak = VF.fixed(0, s);
 		}
@@ -440,10 +456,9 @@ public class AircraftLanding {
 	}
 
 	public void prettyOutput() {
-		if (utiliseMultiCumulative)
-			System.out.println("is using the multiCumulative Constraint");
-		else
-			System.out.println("is NOT using the multiCumulative Constraint");
+
+		System.out.println("Nombre de violations : " + this.violationPrecedence());
+		
 		for (int t = 0; t < this.getnTracks(); t++) {
 			//on place les avions dans l'ordre d'atterrissage
 			HashMap<Integer, Integer> ordedPlaneOnTheTrack = new HashMap<Integer, Integer>(MAX_TIME);
@@ -488,6 +503,7 @@ public class AircraftLanding {
 				System.out.print(" keyPoints : " + keyPoints + " previous value : " + previousValue);
 				interrestingPoints.put(keyPoints, previousValue);
 			}
+			
 
 			System.out.println("");
 			System.out.print("load of track Number " + t + " of size " + this.capacity[t] + " : ");
