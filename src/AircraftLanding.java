@@ -59,9 +59,8 @@ public class AircraftLanding {
 		this.utiliseMultiCumulative = multiCumulative;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
 
-		if(fenetreFixe) {
+		if(!fenetreFixe) {
 			for(String s : schedule){
-
 				String[] temp = s.split(":");
 				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
 				planes.add(planesByTF);
@@ -102,12 +101,12 @@ public class AircraftLanding {
 
 			for (int i = 0; i < this.getnPlanes(); i++) {
 				this.windowStart[i] = planes.get(i)[0] * 60;
-				this.windowEnd[i] = planes.get(i)[1] * 60 + planes.get(i)[2];
+				this.windowEnd[i] = planes.get(i)[1] * 60;
 				//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
 
-				this.minDuration[i] = planes.get(i)[3];
-				this.maxDuration[i] = planes.get(i)[4];
-				this.typePlane[i] = planes.get(i)[5];
+				this.minDuration[i] = planes.get(i)[2];
+				this.maxDuration[i] = planes.get(i)[3];
+				this.typePlane[i] = planes.get(i)[4];
 
 			}
 		}

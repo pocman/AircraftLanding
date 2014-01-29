@@ -232,9 +232,9 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));															// landing
 																			
 					if (i < 2 * nbPlanesSmall / 3 - 2 + random) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":" + endWindow + ":1";
 					} else {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					}
 				}
 				break;
@@ -256,11 +256,11 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));
 					
 					if (i < nbPlanesAverage / 2 - 10 + random2) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":"+ endWindow + ":1";
 					} else if (i < 3 * nbPlanesAverage / 4 - 5 + random3) {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					} else {
-						schedule[i] = startWindow + endWindow + ":3";
+						schedule[i] = startWindow + ":"+ endWindow + ":3";
 					}
 				}
 				break;
@@ -281,11 +281,11 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));
 					
 					if (i < nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":"+ endWindow + ":1";
 					} else if (i < 2 * nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					} else {
-						schedule[i] = startWindow + endWindow + ":3";
+						schedule[i] = startWindow + ":"+ endWindow + ":3";
 					}
 				}
 				break;
@@ -295,6 +295,10 @@ public class InstanceGenerator {
 				schedule = new String[0];
 				break;
 			}
+		}
+		
+		for(String s : schedule){
+			System.out.println(s);
 		}
 		
 		//faire un test sur la possibilit� d'une solution
