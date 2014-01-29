@@ -32,7 +32,7 @@ public class InstanceGenerator {
 				int nbTracksSmall = 2 + r.nextInt(2);
 				capacity = new int[nbTracksSmall];
 				for (int i = 0; i < nbTracksSmall; i++) {
-					capacity[i] = 3 + r.nextInt(3);
+					capacity[i] = 15 + r.nextInt(3);
 				}
 				//int nbPlanesSmall = 10 + r.nextInt(10);
 				//with random seed 100
@@ -308,7 +308,7 @@ public class InstanceGenerator {
 		}
 		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
 		Solver sDummy = new Solver("aircraftLanding_dummy");
-		alDummy.model(sDummy);
+		alDummy.model(sDummy, false);
 		alDummy.chooseStrategy();
 		alDummy.solve();
 		alDummy.prettyOutput();

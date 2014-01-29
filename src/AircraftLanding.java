@@ -114,7 +114,7 @@ public class AircraftLanding {
 		this.sortPlanes();
 	}
 
-	public void model(Solver s) {
+	public void model(Solver s, Boolean precedence) {
 
 		this.s = s;
 		activityPlanes = new Task[nPlanes];
@@ -131,7 +131,8 @@ public class AircraftLanding {
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
 			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 			System.out.println("type of plane " + i + " :" + typePlane[i]);
-			System.out.println(landing[i]);
+			System.out.println(this.landing[i]);
+			System.out.println(this.duration[i]);
 		}
 
 
@@ -139,10 +140,10 @@ public class AircraftLanding {
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 
 		//Cassage de symetrie
-		System.out.println("Utiliser un cassage de symetrie qui peut ralentir la recherche de solution");
+		System.out.println("Utiliser un cassage de symetrie");
 		this.symetrieBreaking(s);
 
-
+		System.out.println("Unicité de positionnement de l'avion sur une piste");
 		//Un avion ne peut etre que sur une seule piste
 		for (int plane = 0; plane < nPlanes; plane++) {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
@@ -153,15 +154,16 @@ public class AircraftLanding {
 			for (int j = 0; j < nPlanes; j++) {
 				s.post(LogicalConstraintFactory.ifThen(IntConstraintFactory.arithm(tracks[i][j], "=", 1), IntConstraintFactory.arithm(tracksByPlane[j], "=", i)));
 			}
-			System.out.println();
 		}
 
+		System.out.println("Contrainte sur l'utilisation de la piste");
 		//On ne peut pas avoir d'avions qui decollent ou atterissent la meme minute.
 		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
 
 
+		System.out.println("Contrainte de precedence");
 		//contrainte souple de precedence entre les avions
-		this.contraintePrecedence(s);
+		this.contraintePrecedence(s, precedence);
 
 		if (utiliseMultiCumulative) {
 			System.out.println("Utilise la contrainte multidimensionnelle");
@@ -192,7 +194,6 @@ public class AircraftLanding {
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
-				//IntStrategyFactory.firstFail_InDomainMiddle(this.sumByTracks)
 		));
 	}
 
@@ -240,7 +241,7 @@ public class AircraftLanding {
 
 		AircraftLanding al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
 		Solver s = new Solver("aircraftLanding");
-		al.model(s);
+		al.model(s, true);
 		al.chooseStrategy();
 		al.solve();
 		al.prettyOutput();
@@ -251,20 +252,30 @@ public class AircraftLanding {
 		}
 	}
 
-	public void contraintePrecedence(Solver s) {
+	public void contraintePrecedence(Solver s, boolean precedence) {
+		if(precedence){
 		IntVar[] brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes, s);
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
-				if (!(this.landing[i].getLB() > this.takeOff[j].getUB() || this.landing[j].getLB() > this.takeOff[i].getUB())) {
-					BoolVar bv = VariableFactory.bool("oui", this.s);
-					//s.post(LogicalConstraintFactory.reification(bv, LogicalConstraintFactory.and(IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j]))));
-					//s.post(LogicalConstraintFactory.ifThen(bv, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s))));
-					//s.post(LogicalConstraintFactory.ifThen(bv.not(), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
-				}
+				
+				Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
+				s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
+						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+
+				
+//				if (!(this.landing[i].getLB() > this.takeOff[j].getUB() || this.landing[j].getLB() > this.takeOff[i].getUB())) {
+//					BoolVar bv = VariableFactory.bool("oui", this.s);
+//					s.post(LogicalConstraintFactory.reification(bv, LogicalConstraintFactory.and(IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j]))));
+//					s.post(LogicalConstraintFactory.ifThenElse(bv, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
+//					IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+//					s.post(LogicalConstraintFactory.ifThen(bv, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s))));
+//					s.post(LogicalConstraintFactory.ifThen(bv.not(), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+//				}
 				//grand
 				// BoolVar bv =  VariableFactory.bool("oui",this.s);
 				//	Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
+				
 				//s.post(LogicalConstraintFactory.ifThenElse(, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
 				//IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
 				//s.post(LogicalConstraintFactory.reification(bv, LogicalConstraintFactory.and(IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j]))));
@@ -273,6 +284,10 @@ public class AircraftLanding {
 			}
 		}
 		s.post(ICF.sum(brokenConstraint, minBreak));
+		}
+		else{
+			minBreak = VF.fixed(0, s);
+		}
 	}
 
 	private void simpleCumulative(Solver s) {
