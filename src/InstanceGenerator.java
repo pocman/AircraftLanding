@@ -29,7 +29,7 @@ public class InstanceGenerator {
 			switch (tailleAeroport) {
 
 			case PETIT:
-				int nbTracksSmall = 2 + r.nextInt(2);
+				int nbTracksSmall = 4 + r.nextInt(6);
 				capacity = new int[nbTracksSmall];
 				for (int i = 0; i < nbTracksSmall; i++) {
 					capacity[i] = 3 + r.nextInt(3);
@@ -90,7 +90,7 @@ public class InstanceGenerator {
 				break;
 
 			case MOYEN:
-				int nbTracksAverage = 4 + r.nextInt(3);
+				int nbTracksAverage = 10 + r.nextInt(10);
 				capacity = new int[nbTracksAverage];
 				for (int i = 0; i < nbTracksAverage; i++) {
 					capacity[i] = 5 + r.nextInt(4);
@@ -151,7 +151,7 @@ public class InstanceGenerator {
 
 			case GRAND:
 				//int nbTracksLarge = 5 + r.nextInt(3);
-				int nbTracksLarge = 6 + r.nextInt(3);
+				int nbTracksLarge = 30 + r.nextInt(20);
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
 					capacity[i] = 5 + r.nextInt(5);
@@ -302,7 +302,7 @@ public class InstanceGenerator {
 		for(int capa : capacity){
 			dummyCapacity[0] += capa;
 		}
-		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
+/*		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
 		Solver sDummy = new Solver("aircraftLanding_dummy");
 		alDummy.model(sDummy);
 		alDummy.chooseStrategy();
@@ -315,8 +315,8 @@ public class InstanceGenerator {
 		else{
 			System.out.println("pas de solution");
 			return null;
-		}
-		
+		}*/
+		return new AircraftLanding(schedule, capacity, true, true);
 	}
 
 	public static void main(String[] args) {
