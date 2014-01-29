@@ -32,7 +32,7 @@ public class InstanceGenerator {
 				int nbTracksSmall = 2 + r.nextInt(2);
 				capacity = new int[nbTracksSmall];
 				for (int i = 0; i < nbTracksSmall; i++) {
-					capacity[i] = 15 + r.nextInt(3);
+					capacity[i] = 3 + r.nextInt(3);
 				}
 				//int nbPlanesSmall = 10 + r.nextInt(10);
 				//with random seed 100
@@ -281,7 +281,7 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));
 					
 					if (i < nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = startWindow + ":"+ endWindow + ":1";
+						schedule[i] = startWindow + ":" + endWindow + ":1";
 					} else if (i < 2 * nbPlanesLarge / 3 - 50 + random4) {
 						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					} else {

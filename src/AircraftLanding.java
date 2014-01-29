@@ -41,6 +41,7 @@ public class AircraftLanding {
 	IntVar[] vCapacities; //of the track//no branching
 	IntVar[][] vLoads;//no branching
 	IntVar[][] heightInCumulatives; //no branching
+	IntVar[] brokenConstraint;
 
 	int[] setOfTypes = new int[]{1, 2, 3};
 	int[] windowStart, minDuration, windowEnd, maxDuration; //for each plane
@@ -102,9 +103,7 @@ public class AircraftLanding {
 			for (int i = 0; i < this.getnPlanes(); i++) {
 				this.windowStart[i] = planes.get(i)[0] * 60;
 				this.windowEnd[i] = planes.get(i)[1] * 60;
-				//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
-
-				this.minDuration[i] = planes.get(i)[2];
+				this.minDuration[i] = 30; //planes.get(i)[2];
 				this.maxDuration[i] = planes.get(i)[3];
 				this.typePlane[i] = planes.get(i)[4];
 
@@ -116,6 +115,9 @@ public class AircraftLanding {
 
 	public void model(Solver s, Boolean precedence) {
 
+		System.out.println();
+		System.out.println("----------Model--------");
+		
 		this.s = s;
 		activityPlanes = new Task[nPlanes];
 		landing = new IntVar[nPlanes];
@@ -125,7 +127,6 @@ public class AircraftLanding {
 
 		for (int i = 0; i < nPlanes; i++) {
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
-			//TODO Quentin : on doit pouvoir changer la duree en mettant une borne min et une borne max
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, minDuration[i], maxDuration[i], s);
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
@@ -178,7 +179,7 @@ public class AircraftLanding {
 
 	public void solve() {
 		SMF.log(s, true, false);
-		SMF.limitTime(s, 35000);
+		//SMF.limitTime(s, 35000);
 		//s.findSolution();
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
@@ -190,9 +191,10 @@ public class AircraftLanding {
 		//		ISF.inputOrder_InDomainMax(takeOff),
 		//		ISF.inputOrder_InDomainMax(duration)));
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
+				IntStrategyFactory.inputOrder_InDomainMin(brokenConstraint),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
-				IntStrategyFactory.inputOrder_InDomainMin(this.landing),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
+				IntStrategyFactory.inputOrder_InDomainMin(this.landing),				
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
 		));
 	}
@@ -254,8 +256,8 @@ public class AircraftLanding {
 
 	public void contraintePrecedence(Solver s, boolean precedence) {
 		if(precedence){
-		IntVar[] brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
-		minBreak = VF.enumerated("breaker", 0, nPlanes, s);
+		brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
+		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				
@@ -286,6 +288,7 @@ public class AircraftLanding {
 		s.post(ICF.sum(brokenConstraint, minBreak));
 		}
 		else{
+			brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 			minBreak = VF.fixed(0, s);
 		}
 	}
