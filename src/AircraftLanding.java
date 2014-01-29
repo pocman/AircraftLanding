@@ -59,7 +59,10 @@ public class AircraftLanding {
 		this.schedule = schedule;
 		this.utiliseMultiCumulative = multiCumulative;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
+<<<<<<< HEAD
+=======
 
+>>>>>>> 1f65202ad7bd9b7050beef745424c8d26e0364e4
 		if(!fenetreFixe) {
 			for(String s : schedule){
 				String[] temp = s.split(":");
