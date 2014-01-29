@@ -93,7 +93,7 @@ public class InstanceGenerator {
 				int nbTracksAverage = 10 + r.nextInt(10);
 				capacity = new int[nbTracksAverage];
 				for (int i = 0; i < nbTracksAverage; i++) {
-					capacity[i] = 5 + r.nextInt(4);
+					capacity[i] = 12 + r.nextInt(4);
 				}
 				//int nbPlanesAverage = 80 + r.nextInt(50);
 				int nbPlanesAverage = 60; // + r.nextInt(50);
@@ -151,13 +151,17 @@ public class InstanceGenerator {
 
 			case GRAND:
 				//int nbTracksLarge = 5 + r.nextInt(3);
+<<<<<<< HEAD
 				int nbTracksLarge = 30 + r.nextInt(20);
+=======
+				int nbTracksLarge = 10 + r.nextInt(3);
+>>>>>>> 1f65202ad7bd9b7050beef745424c8d26e0364e4
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
 					capacity[i] = 5 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
-				int nbPlanesLarge = 200;
+				int nbPlanesLarge = 300;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
@@ -232,9 +236,9 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));															// landing
 																			
 					if (i < 2 * nbPlanesSmall / 3 - 2 + random) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":" + endWindow + ":1";
 					} else {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					}
 				}
 				break;
@@ -256,11 +260,11 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));
 					
 					if (i < nbPlanesAverage / 2 - 10 + random2) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":"+ endWindow + ":1";
 					} else if (i < 3 * nbPlanesAverage / 4 - 5 + random3) {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					} else {
-						schedule[i] = startWindow + endWindow + ":3";
+						schedule[i] = startWindow + ":"+ endWindow + ":3";
 					}
 				}
 				break;
@@ -281,11 +285,11 @@ public class InstanceGenerator {
 					String endWindow = String.valueOf(minDuration+r.nextInt(150));
 					
 					if (i < nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = startWindow + endWindow + ":1";
+						schedule[i] = startWindow + ":" + endWindow + ":1";
 					} else if (i < 2 * nbPlanesLarge / 3 - 50 + random4) {
-						schedule[i] = startWindow + endWindow + ":2";
+						schedule[i] = startWindow + ":"+ endWindow + ":2";
 					} else {
-						schedule[i] = startWindow + endWindow + ":3";
+						schedule[i] = startWindow + ":"+ endWindow + ":3";
 					}
 				}
 				break;
@@ -297,6 +301,10 @@ public class InstanceGenerator {
 			}
 		}
 		
+		for(String s : schedule){
+			System.out.println(s);
+		}
+		
 		//faire un test sur la possibilit� d'une solution
 		int[] dummyCapacity = new int[]{0};
 		for(int capa : capacity){
@@ -304,7 +312,7 @@ public class InstanceGenerator {
 		}
 /*		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
 		Solver sDummy = new Solver("aircraftLanding_dummy");
-		alDummy.model(sDummy);
+		alDummy.model(sDummy, false);
 		alDummy.chooseStrategy();
 		alDummy.solve();
 		alDummy.prettyOutput();
