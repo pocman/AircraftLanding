@@ -266,7 +266,6 @@ public class AircraftLanding {
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
-				
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),				
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
 		));
@@ -540,9 +539,9 @@ public class AircraftLanding {
 	private void sortPlanes() {
 		int[] planes = new int[this.getnPlanes()];
 		int k = 0;
-		for (int s = 3; s > 0; s--) {
+		for (int s = 0; s < ( 60 * 24 ) - 30; s++) {
 			for (int i = 0; i < this.getnPlanes(); i++) {
-				if (this.typePlane[i] == s) {
+				if (this.windowStart[i] == s) {
 					planes[k] = i;
 					k++;
 				}
