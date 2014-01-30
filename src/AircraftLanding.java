@@ -28,7 +28,7 @@ import display.Representation;
 public class AircraftLanding {
 
 	Random r = new Random(42);
-
+	final static int MinutesVersPasTemps = 1;
 	/*
 	 * L'instance du solver
 	 */
@@ -108,6 +108,7 @@ public class AircraftLanding {
 		ArrayList<int[]> planes = new ArrayList<int[]>();
 
 		if(!fenetreFixe) {
+			//on parse notre entrée
 			for(String s : schedule){
 				String[] temp = s.split(":");
 				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
@@ -129,7 +130,6 @@ public class AircraftLanding {
 				this.minDuration[i] = planes.get(i)[0];
 				this.maxDuration[i] = planes.get(i)[1];
 				this.typePlane[i] = planes.get(i)[2];
-
 			}
 		} else {
 			for (String s : schedule) {
@@ -148,21 +148,22 @@ public class AircraftLanding {
 			this.windowEnd = new int[this.getnPlanes()];
 
 			for (int i = 0; i < this.getnPlanes(); i++) {
-				this.windowStart[i] = planes.get(i)[0] * 60;
-				this.windowEnd[i] = planes.get(i)[1] * 60;
-				this.minDuration[i] = planes.get(i)[2];
-				this.maxDuration[i] = planes.get(i)[3];
+				this.windowStart[i] = planes.get(i)[0] * 60* AircraftLanding.MinutesVersPasTemps; //le creneau est en heures, on le tranforme en minutes
+				this.windowEnd[i] = planes.get(i)[1] * 60* AircraftLanding.MinutesVersPasTemps; //le creneau est en heures, on le tranforme en minutes
+				this.minDuration[i] = planes.get(i)[2]*AircraftLanding.MinutesVersPasTemps; //en minutes
+				this.maxDuration[i] = planes.get(i)[3]*AircraftLanding.MinutesVersPasTemps; //en minutes
 				this.typePlane[i] = planes.get(i)[4];
 			}
 		}
+		//notre heuristique de tri des avions pour ensuite utiliser une stratégie input_order
 		this.sortCapacity();
 		this.sortPlanes();
 	}
 
-	/**
+	/**Création des variables et appelle des heuristiques
 	 * 
-	 * @param s
-	 * @param precedence
+	 * @param s L'instance de notre solveur
+	 * @param precedence On utilise une classe de précédence
 	 */
 	public void model(Solver s, Boolean precedence) {
 
@@ -177,10 +178,14 @@ public class AircraftLanding {
 		tracksByPlane = new IntVar[nPlanes];
 
 		for (int i = 0; i < nPlanes; i++) {
+			//Variable d'attérissage tronquée du temps minimal sur tarmac
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i]-minDuration[i], s);
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, minDuration[i], maxDuration[i], s);
+			//Variable de décollage tronquée du temps minimal sur tarmac
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i]+minDuration[i], windowEnd[i], s);
+			//Un avion peut être sur toutes les pistes
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
+			//creation des taches qui assurent le respect des contraintes 
 			taskPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 			System.out.println("type of plane " + i + " :" + typePlane[i]);
 			System.out.println(this.landing[i]);
@@ -210,7 +215,8 @@ public class AircraftLanding {
 
 		System.out.println("Contrainte sur l'utilisation de la piste");
 		//On ne peut pas avoir d'avions qui decollent ou atterissent la meme minute.
-		s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		this.operationUniqueUniteTemps();
+		
 
 
 		//contrainte souple de precedence entre les avions
@@ -227,6 +233,14 @@ public class AircraftLanding {
 
 	}
 	
+	private void operationUniqueUniteTemps() {
+		if(this.nPlanes < 220)
+			s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		else
+			System.out.println("Le pas de temps est trop gros, passer en Seconde et non Minutes");
+		
+	}
+
 	public void solve() {
 		SMF.log(s, true, false);
 		//SMF.limitTime(s, 35000);
