@@ -333,10 +333,12 @@ public class AircraftLanding {
 		System.out.println("Utilise d'une contrainte de precedence");
 		brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
+		int compteur = 0;
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				//version uniquement pour les fenetre fixes
-				if(i!=j && this.noOverLapping(landing[i],this.takeOff[j])){
+				if(i!=j && !this.noOverLapping(landing[i],this.takeOff[i], landing[j], takeOff[j])){
+					compteur++;
 					Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
 					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
 					cons = new Constraint[]{IntConstraintFactory.arithm(landing[j], "<=", landing[i]), IntConstraintFactory.arithm(takeOff[j], ">=", takeOff[i])};
@@ -354,6 +356,7 @@ public class AircraftLanding {
 
 			}
 		}
+		System.out.println(compteur);
 		s.post(ICF.sum(brokenConstraint, minBreak));
 		}
 		else{
@@ -363,8 +366,8 @@ public class AircraftLanding {
 		}
 	}
 	
-	private boolean noOverLapping(IntVar landing, IntVar takeoff){
-		return landing.getLB() > takeoff.getUB();	
+	private boolean noOverLapping(IntVar landing, IntVar takeoff, IntVar landing2, IntVar takeoff2){
+		return landing.getLB() > takeoff2.getUB() || landing2.getLB() > takeoff.getUB();	
 	}
 
 	private void simpleCumulative(Solver s) {
