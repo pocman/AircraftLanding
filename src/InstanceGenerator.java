@@ -28,16 +28,19 @@ public class InstanceGenerator {
 		if (fenetreFixe) {
 			switch (tailleAeroport) {
 
+			//bonne petite instance 
+			//int nbTracksSmall = 4 + r.nextInt(2);
+			//int nbPlanesSmall = 55 + r.nextInt(10);
+			//seed 21
 			case PETIT:
-				int nbTracksSmall = 4 + r.nextInt(6);
+				int nbTracksSmall = 4 + r.nextInt(2);
 				capacity = new int[nbTracksSmall];
 				for (int i = 0; i < nbTracksSmall; i++) {
 					capacity[i] = 3 + r.nextInt(3);
 				}
-				//int nbPlanesSmall = 10 + r.nextInt(10);
-				//with random seed 100
+
 				//int nbPlanesSmall = 35 + r.nextInt(10); really really long
-				int nbPlanesSmall = 35 + r.nextInt(10);
+				int nbPlanesSmall = 55 + r.nextInt(10);//cool size 55
 
 				schedule = new String[nbPlanesSmall];
 				int random = r.nextInt(5);
@@ -96,7 +99,7 @@ public class InstanceGenerator {
 					capacity[i] = 12 + r.nextInt(4);
 				}
 				//int nbPlanesAverage = 80 + r.nextInt(50);
-				int nbPlanesAverage = 60; // + r.nextInt(50);
+				int nbPlanesAverage = 200; // + r.nextInt(50);
 
 				schedule = new String[nbPlanesAverage];
 				int random2 = r.nextInt(24);
@@ -151,17 +154,15 @@ public class InstanceGenerator {
 
 			case GRAND:
 				//int nbTracksLarge = 5 + r.nextInt(3);
-<<<<<<< HEAD
+
 				int nbTracksLarge = 30 + r.nextInt(20);
-=======
-				int nbTracksLarge = 10 + r.nextInt(3);
->>>>>>> 1f65202ad7bd9b7050beef745424c8d26e0364e4
+
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
 					capacity[i] = 5 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
-				int nbPlanesLarge = 300;
+				int nbPlanesLarge = 800;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
@@ -301,16 +302,13 @@ public class InstanceGenerator {
 			}
 		}
 		
-//		for(String s : schedule){
-//			System.out.println(s);
-//		}
 		
 		//faire un test sur la possibilit� d'une solution
 		int[] dummyCapacity = new int[]{0};
 		for(int capa : capacity){
 			dummyCapacity[0] += capa;
 		}
-/*		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
+		AircraftLanding alDummy = new AircraftLanding(schedule, dummyCapacity, true, false);
 		Solver sDummy = new Solver("aircraftLanding_dummy");
 		alDummy.model(sDummy, false);
 		alDummy.chooseStrategy();
@@ -323,8 +321,8 @@ public class InstanceGenerator {
 		else{
 			System.out.println("pas de solution");
 			return null;
-		}*/
-		return new AircraftLanding(schedule, capacity, true, true);
+		}
+		//return new AircraftLanding(schedule, capacity, true, true);
 	}
 
 	public static void main(String[] args) {

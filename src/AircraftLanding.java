@@ -59,10 +59,7 @@ public class AircraftLanding {
 		this.schedule = schedule;
 		this.utiliseMultiCumulative = multiCumulative;
 		ArrayList<int[]> planes = new ArrayList<int[]>();
-<<<<<<< HEAD
-=======
 
->>>>>>> 1f65202ad7bd9b7050beef745424c8d26e0364e4
 		if(!fenetreFixe) {
 			for(String s : schedule){
 				String[] temp = s.split(":");
@@ -186,10 +183,10 @@ public class AircraftLanding {
 	}
 
 	public void chooseStrategy() {
-
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
-				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
+				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
+				
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),				
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
 		));
@@ -214,11 +211,19 @@ public class AircraftLanding {
 		if (reponse.equals("petit")) taille = InstanceGenerator.TAILLE_AEROPORT.PETIT;
 		else if (reponse.equals("moyen")) taille = InstanceGenerator.TAILLE_AEROPORT.MOYEN;
 		else taille = InstanceGenerator.TAILLE_AEROPORT.GRAND;
+		boolean isPositifNumber;
 		do {
 			System.out.println("Veuillez entrer un entier (Afin d'assurer l'unicite de l'aeroport)");
 			reponse = sc.next();
+			isPositifNumber = false;
+			try {
+				isPositifNumber = Integer.parseInt(reponse) >= 0;
+			}
+			catch (NumberFormatException e) {
+				isPositifNumber = false;
+			}			
 		}
-		while ((Integer.parseInt(reponse) < 0));
+		while (!isPositifNumber);
 		int alea = Integer.parseInt(reponse);
 		do {
 			System.out.println("Voulez-vous utiliser des fenetres de temps de stationnement fixes? (y/n)");
@@ -278,12 +283,12 @@ public class AircraftLanding {
 		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
-				
-				Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
-				s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
-						IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
-
-				
+				//version uniquement pour les fenetre fixes
+				if(i!=j && this.overLapping(landing[i],this.landing[j])){
+					Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
+					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+					
+				}		
 //				if (!(this.landing[i].getLB() > this.takeOff[j].getUB() || this.landing[j].getLB() > this.takeOff[i].getUB())) {
 //					BoolVar bv = VariableFactory.bool("oui", this.s);
 //					s.post(LogicalConstraintFactory.reification(bv, LogicalConstraintFactory.and(IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j]))));
@@ -292,15 +297,7 @@ public class AircraftLanding {
 //					s.post(LogicalConstraintFactory.ifThen(bv, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s))));
 //					s.post(LogicalConstraintFactory.ifThen(bv.not(), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
 //				}
-				//grand
-				// BoolVar bv =  VariableFactory.bool("oui",this.s);
-				//	Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
-				
-				//s.post(LogicalConstraintFactory.ifThenElse(, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)),
-				//IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
-				//s.post(LogicalConstraintFactory.reification(bv, LogicalConstraintFactory.and(IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j]))));
-				//s.post(LogicalConstraintFactory.ifThen(bv, IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s))));
-				//s.post(LogicalConstraintFactory.ifThen(bv.not(), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+
 			}
 		}
 		s.post(ICF.sum(brokenConstraint, minBreak));
@@ -310,6 +307,15 @@ public class AircraftLanding {
 			brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 			minBreak = VF.fixed(0, s);
 		}
+	}
+	
+	private boolean overLapping(IntVar x, IntVar y){
+		if(x.getLB() > y.getLB()){
+			IntVar temp = y;
+			y = x;
+			x = y;
+		}
+		return x.getUB() >= y.getLB();	
 	}
 
 	private void simpleCumulative(Solver s) {
@@ -321,9 +327,8 @@ public class AircraftLanding {
 				s.post(IntConstraintFactory.times(
 						VariableFactory.fixed(this.typePlane[v], s),
 						this.tracks[u][v], heightInCumulatives[v][u]));
-				System.out.print(heightInCumulatives[v][u] + " ,");
 			}
-			System.out.println();
+			//System.out.println();
 			s.post(IntConstraintFactory.cumulative(activityPlanes,
 					ArrayUtils.getColumn(heightInCumulatives, u),
 					VariableFactory.fixed(this.getCapacity()[u], s)));
