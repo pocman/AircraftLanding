@@ -35,8 +35,8 @@ public class AircraftLanding {
 	Solver s;
 
 	/*
-	 * Une tache contient la date d'arrivée, la date de départ 
-	 * et la durée de stationnement de l'avion sur la piste
+	 * Une tache contient la date d'arrivï¿½e, la date de dï¿½part 
+	 * et la durï¿½e de stationnement de l'avion sur la piste
 	 */
 	Task[] taskPlanes;
 	IntVar[] duration, landing, takeOff; //for each plane
@@ -48,7 +48,7 @@ public class AircraftLanding {
 	IntVar[][] tracks;
 	
 	/*
-	 * Les ressources occupées par chaque avion sur chaque piste
+	 * Les ressources occupï¿½es par chaque avion sur chaque piste
 	 * Matrice de taille nPlanes * nTracks
 	 */
 	IntVar[][] heightInCumulatives;
@@ -59,47 +59,47 @@ public class AircraftLanding {
 	IntVar[] sumByTracks;
 	
 	/*
-	 * Le numéro de la piste sur laquelle est chaque avion
+	 * Le numï¿½ro de la piste sur laquelle est chaque avion
 	 */
 	IntVar[] tracksByPlane;
 	
 	/*
-	 * Si l'avion viole une contrainte de précédence ou non
+	 * Si l'avion viole une contrainte de prï¿½cï¿½dence ou non
 	 */
 	IntVar[] brokenConstraint;
 	
 	/*
-	 * Somme des avions qui violent une contrainte de précédence
+	 * Somme des avions qui violent une contrainte de prï¿½cï¿½dence
 	 */
 	IntVar minBreak;
 	
 	/*
-	 * Variable représentant la capacité d'une piste
+	 * Variable reprï¿½sentant la capacitï¿½ d'une piste
 	 */
 	IntVar[] vCapacities;
 	
 	/*
-	 * Boolean spécifiant si on utilise plusieurs contriantes cumulatives 
+	 * Boolean spï¿½cifiant si on utilise plusieurs contriantes cumulatives 
 	 * ou la contrainte cumulative multi d'Arnauld Letort
 	 */
 	boolean utiliseMultiCumulative;
 
 
 	int[] setOfTypes = new int[]{1, 2, 3};//la valeur d'occupation pour chaque type d'avion
-	int[] windowStart, minDuration, windowEnd, maxDuration; //valeur en entrée pour la fenetre de chaque avion
+	int[] windowStart, minDuration, windowEnd, maxDuration; //valeur en entrï¿½e pour la fenetre de chaque avion
 	int[] typePlane; //le type de chaque avion
-	int[] capacity; //la capacité de chaque piste
+	int[] capacity; //la capacitï¿½ de chaque piste
 	int nPlanes; //le nombre d'avion dans l'instance
 	int nTracks; //le nombre de piste dans l'instance
-	String[] schedule; //les données en entrée séparées avec des ':'
+	String[] schedule; //les donnï¿½es en entrï¿½e sï¿½parï¿½es avec des ':'
 
 
 
 	/**Le constructeur de notre solver
 	 * 
-	 * @param schedule Chaque avion est représenté par une string avec les durées des intervalles en minutes et son type d'avion espacé par des ':'
-	 * @param capacity La capacité de chaque piste
-	 * @param fenetreFixe Si fourni les fenetres en entrée
+	 * @param schedule Chaque avion est reprï¿½sentï¿½ par une string avec les durï¿½es des intervalles en minutes et son type d'avion espacï¿½ par des ':'
+	 * @param capacity La capacitï¿½ de chaque piste
+	 * @param fenetreFixe Si fourni les fenetres en entrï¿½e
 	 * @param multiCumulative Si on utilise la contrainte cumulativeMultiple
 	 */
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe, boolean multiCumulative) {
@@ -195,7 +195,7 @@ public class AircraftLanding {
 		System.out.println("Utiliser un cassage de symetrie");
 		this.symetrieBreaking(s);
 
-		System.out.println("Unicité de positionnement de l'avion sur une piste");
+		System.out.println("Unicitï¿½ de positionnement de l'avion sur une piste");
 		//Un avion ne peut etre que sur une seule piste
 		for (int plane = 0; plane < nPlanes; plane++) {
 			s.post(ICF.count(1, ArrayUtils.getColumn(tracks, plane), VF.fixed(1, s)));
@@ -295,7 +295,7 @@ public class AircraftLanding {
 		else multiCumulative = false;
 		
 		do {
-			System.out.println("Voulez-vous utiliser la contrainte de précédence? (y/n)");
+			System.out.println("Voulez-vous utiliser la contrainte de prï¿½cï¿½dence? (y/n)");
 			reponse = sc.next();
 		}
 		while (!(reponse.equals("y") || reponse.equals("n")));
@@ -306,6 +306,10 @@ public class AircraftLanding {
 
 		AircraftLanding al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
 		Solver s = new Solver("aircraftLanding");
+		if(al == null) {
+			System.out.println("No solution found !");
+			System.exit(0);
+		}
 		al.model(s, precedence);
 		al.chooseStrategy();
 		al.solve();
