@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import com.sun.security.jgss.InquireType;
+
 import display.Representation;
 
 
@@ -280,14 +282,15 @@ public class AircraftLanding {
 		Scanner sc = new Scanner(System.in);
 		String reponse;
 		do {
-			System.out.println("Veuillez choisir la taille de l'aeroport (petit, moyen ou grand)");
+			System.out.println("Veuillez choisir la taille de l'aeroport (default, petit, moyen ou grand)");
 			reponse = sc.next();
 		}
-		while (!(reponse.equals("petit") || reponse.equals("moyen") || reponse.equals("grand")));
+		while (!(reponse.equals("petit") || reponse.equals("moyen") || reponse.equals("grand") || reponse.equals("default")));
 		InstanceGenerator.TAILLE_AEROPORT taille;
 		if (reponse.equals("petit")) taille = InstanceGenerator.TAILLE_AEROPORT.PETIT;
 		else if (reponse.equals("moyen")) taille = InstanceGenerator.TAILLE_AEROPORT.MOYEN;
-		else taille = InstanceGenerator.TAILLE_AEROPORT.GRAND;
+		else if (reponse.equals("grand")) taille = InstanceGenerator.TAILLE_AEROPORT.GRAND;
+		else taille = InstanceGenerator.TAILLE_AEROPORT.DEFAULT;
 		boolean isPositifNumber;
 		do {
 			System.out.println("Veuillez entrer un entier (Afin d'assurer l'unicite de l'aeroport)");
@@ -302,14 +305,15 @@ public class AircraftLanding {
 		}
 		while (!isPositifNumber);
 		int alea = Integer.parseInt(reponse);
-		do {
-			System.out.println("Voulez-vous utiliser des fenetres de temps de stationnement fixes? (y/n)");
-			reponse = sc.next();
-		}
-		while (!(reponse.equals("y") || reponse.equals("n")));
-		boolean fenetresFixes;
-		if (reponse.equals("y")) fenetresFixes = true;
-		else fenetresFixes = false;
+		//		do {
+		//		System.out.println("Voulez-vous utiliser des fenetres de temps de stationnement fixes? (y/n)");
+		//		reponse = sc.next();
+		//	}
+		//	while (!(reponse.equals("y") || reponse.equals("n")));
+		//	boolean fenetresFixes;
+		//	if (reponse.equals("y")) fenetresFixes = true;
+		//	else fenetresFixes = false;
+		boolean fenetresFixes = true;
 		do {
 			System.out.println("Voulez-vous utiliser la contrainte multiCumulative? (y/n)");
 			reponse = sc.next();
@@ -328,8 +332,11 @@ public class AircraftLanding {
 		if (reponse.equals("y")) precedence = true;
 		else precedence = false;
 
-
-		AircraftLanding al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
+		AircraftLanding al;
+		if(taille == InstanceGenerator.TAILLE_AEROPORT.DEFAULT)
+			al = InstanceGenerator.defaultGenerator(multiCumulative);
+		else
+			al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
 		Solver s = new Solver("aircraftLanding");
 		if(al == null) {
 			System.out.println("No solution found !");
