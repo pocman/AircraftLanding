@@ -334,10 +334,10 @@ public class AircraftLanding {
 		brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
 		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
 		int compteur = 0;
-		for (int i = 0; i < nPlanes; i++) {
-			for (int j = 0; j < nPlanes; j++) {
+		for (int i = 0; i < nPlanes-1; i++) {
+			for (int j = i+1; j < nPlanes; j++) {
 				//version uniquement pour les fenetre fixes
-				if(i!=j && !this.noOverLapping(landing[i],this.takeOff[i], landing[j], takeOff[j])){
+				if(!this.noOverLapping(landing[i],this.takeOff[i], landing[j], takeOff[j])){
 					compteur++;
 					Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
 					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
