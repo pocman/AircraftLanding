@@ -61,7 +61,7 @@ public class AircraftLanding {
 	IntVar[] sumByTracks;
 	
 	/*
-	 * Le numï¿½ro de la piste sur laquelle est chaque avion
+	 * Le numïero de la piste sur laquelle est chaque avion
 	 */
 	IntVar[] tracksByPlane;
 	
@@ -200,7 +200,7 @@ public class AircraftLanding {
 		tracks = VariableFactory.enumeratedMatrix("track of plane", nTracks, nPlanes, 0, 1, s);
 
 		//Cassage de symetrie
-		System.out.println("Utiliser un cassage de symetrie");
+		System.out.println("Utilise un cassage de symetries");
 		this.symetrieBreaking(s);
 
 		
@@ -252,9 +252,9 @@ public class AircraftLanding {
 		
 	}
 
-	public void solve() {
+	public void solve(int timeOut) {
 		SMF.log(s, true, false);
-		//SMF.limitTime(s, 35000);
+		SMF.limitTime(s, timeOut);
 		//s.findSolution();
 		s.findOptimalSolution(ResolutionPolicy.MINIMIZE, minBreak);
 	}
@@ -266,8 +266,9 @@ public class AircraftLanding {
 		s.set(new StrategiesSequencer(IntStrategyFactory.inputOrder_InDomainMin(new IntVar[]{minBreak}),
 				IntStrategyFactory.inputOrder_InDomainMin(this.takeOff),
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
-				IntStrategyFactory.inputOrder_InDomainMin(this.landing),				
+				IntStrategyFactory.inputOrder_InDomainMin(this.landing),	
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
+				
 		));
 	}
 
@@ -294,8 +295,10 @@ public class AircraftLanding {
 		boolean isPositifNumber;
 		do {
 			System.out.println("Veuillez entrer un entier (Afin d'assurer l'unicite de l'aeroport)");
-			reponse = sc.next();
+			reponse = sc.nextLine();
 			isPositifNumber = false;
+			if(sc.hasNextLine())
+				reponse = sc.nextLine();
 			try {
 				isPositifNumber = Integer.parseInt(reponse) >= 0;
 			}
@@ -315,22 +318,37 @@ public class AircraftLanding {
 		//	else fenetresFixes = false;
 		boolean fenetresFixes = true;
 		do {
-			System.out.println("Voulez-vous utiliser la contrainte multiCumulative? (y/n)");
-			reponse = sc.next();
+			System.out.println("Voulez-vous utiliser la contrainte multiCumulative? (y/N)");
+			reponse = sc.nextLine();
 		}
-		while (!(reponse.equals("y") || reponse.equals("n")));
-		boolean multiCumulative;
-		if (reponse.equals("y")) multiCumulative = true;
-		else multiCumulative = false;
+		while (!(reponse.equals("y") || reponse.equals("n") || reponse.equals("") ));
+		boolean multiCumulative = reponse.equals("y");
 		
 		do {
-			System.out.println("Voulez-vous utiliser la contrainte de prï¿½cï¿½dence? (y/n)");
-			reponse = sc.next();
+			System.out.println("Voulez-vous utiliser la contrainte de precedence? (Y/n)");
+			reponse = sc.nextLine();
 		}
-		while (!(reponse.equals("y") || reponse.equals("n")));
-		boolean precedence;
-		if (reponse.equals("y")) precedence = true;
-		else precedence = false;
+		while (!(reponse.equals("y") || reponse.equals("n") || reponse.equals("")));
+		boolean precedence = !reponse.equals("n");
+		int timeOut = 35000;
+		do {
+			System.out.println("Quelle valeur utiliser comme timeOut? (default 35sec)");
+			reponse = sc.nextLine();
+			isPositifNumber = false;
+			if(reponse.equals(""))
+				break;
+			else{
+				try {
+					isPositifNumber = Integer.parseInt(reponse) >= 0;
+				}
+				catch (NumberFormatException e) {
+					isPositifNumber = false;
+				}	
+			}
+		}
+		while (!isPositifNumber);
+		if(!reponse.equals(""))
+			timeOut = Integer.parseInt(reponse)*1000;
 
 		AircraftLanding al;
 		if(taille == InstanceGenerator.TAILLE_AEROPORT.DEFAULT)
@@ -344,7 +362,7 @@ public class AircraftLanding {
 		}
 		al.model(s, precedence);
 		al.chooseStrategy();
-		al.solve();
+		al.solve(timeOut);
 		al.prettyOutput();
 		try {
 			al.csvOutput("test");
@@ -539,7 +557,7 @@ public class AircraftLanding {
 	private void sortPlanes() {
 		int[] planes = new int[this.getnPlanes()];
 		int k = 0;
-		for (int s = 0; s < ( 60 * 24 ) - 30; s++) {
+		for (int s = 0; s < ( 60 * 24 * AircraftLanding.MinutesVersPasTemps ) - 30 * AircraftLanding.MinutesVersPasTemps ; s++) {
 			for (int i = 0; i < this.getnPlanes(); i++) {
 				if (this.windowStart[i] == s) {
 					planes[k] = i;

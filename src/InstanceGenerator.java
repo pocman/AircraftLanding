@@ -123,7 +123,7 @@ public class InstanceGenerator {
 					capacity[i] = 3 + r.nextInt(4);
 				}
 
-				int nbPlanesAverage = 80 + r.nextInt(20);
+				int nbPlanesAverage = 120 + r.nextInt(20);
 
 
 				schedule = new String[nbPlanesAverage];
@@ -132,7 +132,7 @@ public class InstanceGenerator {
 				int nbType3 = 0;
 				for (int i = 0; i < nbPlanesAverage; i++) {
 					int minDuration = 30+r.nextInt(30); 
-					int maxDuration = minDuration+r.nextInt(45);
+					int maxDuration = minDuration+r.nextInt(45)+5;
 					int type;
 					if (nbType3 < nbPlanesAverage / 2) {
 						type = 1 + r.nextInt(3);
@@ -203,20 +203,20 @@ public class InstanceGenerator {
 
 			case GRAND:
 
-				int nbTracksLarge = 50 + r.nextInt(20);
+				int nbTracksLarge = 10 + r.nextInt(20);
 
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
-					capacity[i] = 10 + r.nextInt(5);
+					capacity[i] = 40 + r.nextInt(5);
 				}
-				int nbPlanesLarge = 800;
+				int nbPlanesLarge = 400;
 
 				schedule = new String[nbPlanesLarge];
 				int random4 = r.nextInt(80);
 				int nbType3bis = 0;
 				for (int i = 0; i < nbPlanesLarge; i++) {
 					int minDuration = 30+r.nextInt(30); 
-					int maxDuration = minDuration+r.nextInt(45);					
+					int maxDuration = minDuration+r.nextInt(45)+5;					
 					int type;
 					if (nbType3bis < 2 * nbPlanesLarge / 3) {
 						type = 1 + r.nextInt(3);
@@ -382,7 +382,7 @@ public class InstanceGenerator {
 		Solver sDummy = new Solver("aircraftLanding_dummy");
 		alDummy.model(sDummy, false);
 		alDummy.chooseStrategy();
-		alDummy.solve();
+		alDummy.solve(35000);
 		alDummy.prettyOutput();
 		
 		
