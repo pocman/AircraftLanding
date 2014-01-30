@@ -241,16 +241,7 @@ public class AircraftLanding {
 
 	}
 	
-	/**
-	 * Post la alldiff globale sur l'unicité des actions par pas de temps
-	 */
-	private void operationUniqueUniteTemps() {
-		if(this.nPlanes < 220)
-			s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
-		else
-			System.out.println("Le pas de temps est trop gros, passer en Seconde et non Minutes");
-		
-	}
+
 
 	public void solve(int timeOut) {
 		SMF.log(s, true, false);
@@ -369,6 +360,19 @@ public class AircraftLanding {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Post la alldiff globale sur l'unicité des actions par pas de temps
+	 */
+	private void operationUniqueUniteTemps() {
+		if(this.nPlanes < 300)
+			s.post(IntConstraintFactory.alldifferent(ArrayUtils.append(this.landing, this.takeOff), "BC"));
+		else{
+			s.post(IntConstraintFactory.alldifferent(this.landing, "BC"));
+			System.out.println("Le pas de temps est trop gros, passer en Seconde et non Minutes");
+		}
+		
 	}
 
 	/**
@@ -603,34 +607,40 @@ public class AircraftLanding {
 		System.out.println("Nombre de violations : " + this.violationPrecedence());
 		
 		//on place les avions dans l'ordre d'atterrissage
-		HashMap<Integer, Integer> ordedPlaneOnTheTrack = new HashMap<Integer, Integer>(60*24);
+		HashMap<Integer, ArrayList<Integer>> ordedPlaneOnTheTrack = new HashMap<Integer, ArrayList<Integer>>(60*24);
 		for (int t = 0; t < this.getnTracks(); t++) {
 		for (int plane = 0; plane < nPlanes; plane++) {
 			if (this.tracks[t][plane].getValue() == 1) {
-				ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), plane);
+				if(!ordedPlaneOnTheTrack.containsKey(this.landing[plane].getValue()))
+					ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), new ArrayList<Integer>());
+				ordedPlaneOnTheTrack.get(this.landing[plane].getValue()).add(plane);					
+				}
 			}
 		}
-		}
+		
 		
 		//On genere l'ensemble des pas de temps d'interet pour chaque piste
 		HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
 		for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
-			int plane = ordedPlaneOnTheTrack.get(keyPlane);
-			if (!interrestingPoints.containsKey(this.landing[plane].getValue())) {
-				interrestingPoints.put(this.landing[plane].getValue(), 0);
+			ArrayList<Integer> planes = ordedPlaneOnTheTrack.get(keyPlane);
+			for(int plane : planes){
+				if (!interrestingPoints.containsKey(this.landing[plane].getValue())) {
+					interrestingPoints.put(this.landing[plane].getValue(), 0);
+				}
+				if (!interrestingPoints.containsKey(this.takeOff[plane].getValue())) {
+					interrestingPoints.put(this.takeOff[plane].getValue(), 0);
+				}
 			}
-			if (!interrestingPoints.containsKey(this.takeOff[plane].getValue())) {
-				interrestingPoints.put(this.takeOff[plane].getValue(), 0);
-			}
-
 		}
 		
 		for (int t = 0; t < this.getnTracks(); t++) {
 			//on place les avions dans l'ordre d'atterrissage
-			ordedPlaneOnTheTrack = new HashMap<Integer, Integer>(60*24);
+			ordedPlaneOnTheTrack = new HashMap<Integer, ArrayList<Integer>>(60*24);
 			for (int plane = 0; plane < nPlanes; plane++) {
 				if (this.tracks[t][plane].getValue() == 1) {
-					ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), plane);
+					if(!ordedPlaneOnTheTrack.containsKey(this.landing[plane].getValue()))
+						ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), new ArrayList<Integer>());
+					ordedPlaneOnTheTrack.get(this.landing[plane].getValue()).add(plane);	
 				}
 			}
 
@@ -642,13 +652,15 @@ public class AircraftLanding {
 				justLanded = 0;
 				justTookOff = 0;
 				for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
-					int plane = ordedPlaneOnTheTrack.get(keyPlane);
+					ArrayList<Integer> planes = ordedPlaneOnTheTrack.get(keyPlane);
+					for(int plane : planes){
 					if (this.landing[plane].getValue() == keyPoints) {
 						justLanded += this.typePlane[plane];
 
 					}
 					if (this.takeOff[plane].getValue() == keyPoints) {
 						justTookOff += this.typePlane[plane];
+					}
 					}
 
 				}
