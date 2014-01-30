@@ -170,7 +170,7 @@ public class AircraftLanding {
 	public void model(Solver s, Boolean precedence) {
 
 		System.out.println();
-		System.out.println("----------Model--------");
+		System.out.println("----------Model--------" + s.getName());
 		
 		this.s = s;
 		taskPlanes = new Task[nPlanes];
@@ -189,9 +189,10 @@ public class AircraftLanding {
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
 			//creation des taches qui assurent le respect des contraintes 
 			taskPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
-			System.out.println("type of plane " + i + " :" + typePlane[i]);
-			System.out.println(this.landing[i]);
-			System.out.println(this.duration[i]);
+			System.out.print("type :" + typePlane[i]);
+			System.out.print(" " + this.landing[i]);
+			System.out.print(" " + this.duration[i]);
+			System.out.println(" " + this.takeOff[i]);
 		}
 
 
