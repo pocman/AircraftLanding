@@ -24,6 +24,8 @@ import java.util.Scanner;
 
 import com.sun.security.jgss.InquireType;
 
+import display.OutPut;
+import display.ParseurEntree;
 import display.Representation;
 
 
@@ -37,8 +39,8 @@ public class AircraftLanding {
 	Solver s;
 
 	/*
-	 * Une tache contient la date d'arrivï¿½e, la date de dï¿½part 
-	 * et la durï¿½e de stationnement de l'avion sur la piste
+	 * Une tache contient la date d'arriveeee, la date de deeepart 
+	 * et la dureeee de stationnement de l'avion sur la piste
 	 */
 	Task[] taskPlanes;
 	IntVar[] duration, landing, takeOff; //for each plane
@@ -50,7 +52,7 @@ public class AircraftLanding {
 	IntVar[][] tracks;
 	
 	/*
-	 * Les ressources occupï¿½es par chaque avion sur chaque piste
+	 * Les ressources occupeeees par chaque avion sur chaque piste
 	 * Matrice de taille nPlanes * nTracks
 	 */
 	IntVar[][] heightInCumulatives;
@@ -61,47 +63,47 @@ public class AircraftLanding {
 	IntVar[] sumByTracks;
 	
 	/*
-	 * Le numïero de la piste sur laquelle est chaque avion
+	 * Le numeero de la piste sur laquelle est chaque avion
 	 */
 	IntVar[] tracksByPlane;
 	
 	/*
-	 * Si l'avion viole une contrainte de prï¿½cï¿½dence ou non
+	 * Si l'avion viole une contrainte de preeeceeedence ou non
 	 */
 	IntVar[] brokenConstraint;
 	
 	/*
-	 * Somme des avions qui violent une contrainte de prï¿½cï¿½dence
+	 * Somme des avions qui violent une contrainte de preeeceeedence
 	 */
 	IntVar minBreak;
 	
 	/*
-	 * Variable reprï¿½sentant la capacitï¿½ d'une piste
+	 * Variable repreeesentant la capaciteee d'une piste
 	 */
 	IntVar[] vCapacities;
 	
 	/*
-	 * Boolean spï¿½cifiant si on utilise plusieurs contriantes cumulatives 
+	 * Boolean speeecifiant si on utilise plusieurs contriantes cumulatives 
 	 * ou la contrainte cumulative multi d'Arnauld Letort
 	 */
 	boolean utiliseMultiCumulative;
 
 
 	int[] setOfTypes = new int[]{1, 2, 3};//la valeur d'occupation pour chaque type d'avion
-	int[] windowStart, minDuration, windowEnd, maxDuration; //valeur en entrï¿½e pour la fenetre de chaque avion
+	int[] windowStart, minDuration, windowEnd, maxDuration; //valeur en entreeee pour la fenetre de chaque avion
 	int[] typePlane; //le type de chaque avion
-	int[] capacity; //la capacitï¿½ de chaque piste
+	int[] capacity; //la capaciteee de chaque piste
 	int nPlanes; //le nombre d'avion dans l'instance
 	int nTracks; //le nombre de piste dans l'instance
-	String[] schedule; //les donnï¿½es en entrï¿½e sï¿½parï¿½es avec des ':'
+	String[] schedule; //les donneeees en entreeee seeepareeees avec des ':'
 
 
 
 	/**Le constructeur de notre solver
 	 * 
-	 * @param schedule Chaque avion est reprï¿½sentï¿½ par une string avec les durï¿½es des intervalles en minutes et son type d'avion espacï¿½ par des ':'
-	 * @param capacity La capacitï¿½ de chaque piste
-	 * @param fenetreFixe Si fourni les fenetres en entrï¿½e
+	 * @param schedule Chaque avion est repreeesenteee par une string avec les dureeees des intervalles en minutes et son type d'avion espaceee par des ':'
+	 * @param capacity La capaciteee de chaque piste
+	 * @param fenetreFixe Si fourni les fenetres en entreeee
 	 * @param multiCumulative Si on utilise la contrainte cumulativeMultiple
 	 */
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe, boolean multiCumulative) {
@@ -110,7 +112,7 @@ public class AircraftLanding {
 		ArrayList<int[]> planes = new ArrayList<int[]>();
 
 		if(!fenetreFixe) {
-			//on parse notre entrée
+			//on parse notre entree
 			for(String s : schedule){
 				String[] temp = s.split(":");
 				int[] planesByTF = new int[]{Integer.parseInt(temp[0]), Integer.parseInt(temp[1]), Integer.parseInt(temp[2])};
@@ -157,15 +159,15 @@ public class AircraftLanding {
 				this.typePlane[i] = planes.get(i)[4];
 			}
 		}
-		//notre heuristique de tri des avions pour ensuite utiliser une stratégie input_order
+		//notre heuristique de tri des avions pour ensuite utiliser une strategie input_order
 		this.sortCapacity();
 		this.sortPlanes();
 	}
 
-	/**Création des variables et appelle des heuristiques
+	/**Creation des variables et appelle des heuristiques
 	 * 
 	 * @param s L'instance de notre solveur
-	 * @param precedence On utilise une classe de précédence
+	 * @param precedence On utilise une classe de precedence
 	 */
 	public void model(Solver s, Boolean precedence) {
 
@@ -180,12 +182,12 @@ public class AircraftLanding {
 		tracksByPlane = new IntVar[nPlanes];
 
 		for (int i = 0; i < nPlanes; i++) {
-			//Variable d'attérissage tronquée du temps minimal sur tarmac
+			//Variable d'atterissage tronquee du temps minimal sur tarmac
 			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i]-minDuration[i], s);
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, minDuration[i], maxDuration[i], s);
-			//Variable de décollage tronquée du temps minimal sur tarmac
+			//Variable de decollage tronquee du temps minimal sur tarmac
 			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i]+minDuration[i], windowEnd[i], s);
-			//Un avion peut être sur toutes les pistes
+			//Un avion peut etre sur toutes les pistes
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
 			//creation des taches qui assurent le respect des contraintes 
 			taskPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
@@ -360,10 +362,21 @@ public class AircraftLanding {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		ParseurEntree parseur;
+		try {
+			parseur = new ParseurEntree(new File("test.csv"));
+			OutPut out = new OutPut(parseur.getPlanes(),parseur.getPistes());
+			out.outputCSV();
+
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
-	 * Post la alldiff globale sur l'unicité des actions par pas de temps
+	 * Post la alldiff globale sur l'unicite des actions par pas de temps
 	 */
 	private void operationUniqueUniteTemps() {
 		if(this.nPlanes < 300)
@@ -376,7 +389,7 @@ public class AircraftLanding {
 	}
 
 	/**
-	 * Retourne le nombre de violation de la contrainte de précédence pour le prettyOutput
+	 * Retourne le nombre de violation de la contrainte de precedence pour le prettyOutput
 	 * @return
 	 */
 	public int violationPrecedence(){
@@ -391,8 +404,8 @@ public class AircraftLanding {
 	}
 	
 	/**
-	 * Post la contrainte de précédence
-	 * Pour le moment on ne compte que les avions qui violent une précédence et pas le nombre exacte de précédence violées
+	 * Post la contrainte de precedence
+	 * Pour le moment on ne compte que les avions qui violent une precedence et pas le nombre exacte de precedence violees
 	 * @param s
 	 * @param precedence
 	 */
@@ -421,10 +434,10 @@ public class AircraftLanding {
 	}
 	
 	/**
-	 * Retourne si deux avions peuvent créer une violation de précédence
-	 * @param landing fenetre d'attérrisage de l'avion 1
+	 * Retourne si deux avions peuvent creer une violation de precedence
+	 * @param landing fenetre d'atterrisage de l'avion 1
 	 * @param takeoff fenetre decollage de l'avion 1
-	 * @param landing2 fenetre d'attérrisage de l'avion 2
+	 * @param landing2 fenetre d'atterrisage de l'avion 2
 	 * @param takeoff2 fenetre decollage de l'avion 1
 	 * @return
 	 */
@@ -453,7 +466,7 @@ public class AircraftLanding {
 	}
 
 	/**
-	 * Post les surcontraintes permettant de casser les symétries pour les recherches de non solutions.
+	 * Post les surcontraintes permettant de casser les symetries pour les recherches de non solutions.
 	 * @param s
 	 */
 	private void symetrieBreaking(Solver s) {
@@ -597,7 +610,7 @@ public class AircraftLanding {
 	}
 
 	/**
-	 * première ihm en console pour montrer les points d'interets et les capacités par pistes
+	 * premiere ihm en console pour montrer les points d'interets et les capacites par pistes
 	 */
 	public void prettyOutput() {
 
@@ -693,7 +706,7 @@ public class AircraftLanding {
 	}
 
 	/**
-	 * retourne une liste triée à partir d'une collection
+	 * retourne une liste triee e partir d'une collection
 	 * @param c
 	 * @return
 	 */
