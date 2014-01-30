@@ -27,34 +27,81 @@ import display.Representation;
 
 public class AircraftLanding {
 
-	/**
-	 * @param args
-	 */
 	Random r = new Random(42);
 
-	Task[] activityPlanes;
-	IntVar[] duration, landing, takeOff; //for each plane
-	IntVar[][] tracks; //binary variable
-	IntVar[] sumByTracks;
-	IntVar[] tracksByPlane;
-	IntVar minBreak;
-	IntVar[] vCapacities; //of the track//no branching
-	IntVar[][] vLoads;//no branching
-	IntVar[][] heightInCumulatives; //no branching
-	IntVar[] brokenConstraint;
-
-	int[] setOfTypes = new int[]{1, 2, 3};
-	int[] windowStart, minDuration, windowEnd, maxDuration; //for each plane
-	int[] typePlane; //1,2 ou 3 correspondant a la capacite utilisee
-	int[] capacity; //of the track
-	int nPlanes; //number of planes
-	int nTracks; //number of tracks
-	int MAX_TIME = 60 * 24;
-	String[] schedule;
-	boolean utiliseMultiCumulative;
+	/*
+	 * L'instance du solver
+	 */
 	Solver s;
 
+	/*
+	 * Une tache contient la date d'arrivée, la date de départ 
+	 * et la durée de stationnement de l'avion sur la piste
+	 */
+	Task[] taskPlanes;
+	IntVar[] duration, landing, takeOff; //for each plane
+	
+	/*
+	 * Une matrice 0/1 de taille nTracks * nPlanes
+	 * qui donne la position des avions sur les pistes
+	 */
+	IntVar[][] tracks;
+	
+	/*
+	 * Les ressources occupées par chaque avion sur chaque piste
+	 * Matrice de taille nPlanes * nTracks
+	 */
+	IntVar[][] heightInCumulatives;
+	
+	/*
+	 * Le nombre d'avions par piste
+	 */
+	IntVar[] sumByTracks;
+	
+	/*
+	 * Le numéro de la piste sur laquelle est chaque avion
+	 */
+	IntVar[] tracksByPlane;
+	
+	/*
+	 * Si l'avion viole une contrainte de précédence ou non
+	 */
+	IntVar[] brokenConstraint;
+	
+	/*
+	 * Somme des avions qui violent une contrainte de précédence
+	 */
+	IntVar minBreak;
+	
+	/*
+	 * Variable représentant la capacité d'une piste
+	 */
+	IntVar[] vCapacities;
+	
+	/*
+	 * Boolean spécifiant si on utilise plusieurs contriantes cumulatives 
+	 * ou la contrainte cumulative multi d'Arnauld Letort
+	 */
+	boolean utiliseMultiCumulative;
 
+
+	int[] setOfTypes = new int[]{1, 2, 3};//la valeur d'occupation pour chaque type d'avion
+	int[] windowStart, minDuration, windowEnd, maxDuration; //valeur en entrée pour la fenetre de chaque avion
+	int[] typePlane; //le type de chaque avion
+	int[] capacity; //la capacité de chaque piste
+	int nPlanes; //le nombre d'avion dans l'instance
+	int nTracks; //le nombre de piste dans l'instance
+	String[] schedule; //les données en entrée séparées avec des ':'
+
+
+
+	/**Le constructeur de notre solver
+	 * 
+	 * @param schedule Chaque avion est représenté par une string avec les durées des intervalles en minutes et son type d'avion espacé par des ':'
+	 * @param capacity La capacité de chaque piste
+	 * @param fenetreFixe Si fourni les fenetres en entrée
+	 * @param multiCumulative Si on utilise la contrainte cumulativeMultiple
+	 */
 	public AircraftLanding(String[] schedule, int[] capacity, boolean fenetreFixe, boolean multiCumulative) {
 		this.schedule = schedule;
 		this.utiliseMultiCumulative = multiCumulative;
@@ -112,24 +159,29 @@ public class AircraftLanding {
 		this.sortPlanes();
 	}
 
+	/**
+	 * 
+	 * @param s
+	 * @param precedence
+	 */
 	public void model(Solver s, Boolean precedence) {
 
 		System.out.println();
 		System.out.println("----------Model--------");
 		
 		this.s = s;
-		activityPlanes = new Task[nPlanes];
+		taskPlanes = new Task[nPlanes];
 		landing = new IntVar[nPlanes];
 		duration = new IntVar[nPlanes];
 		takeOff = new IntVar[nPlanes];
 		tracksByPlane = new IntVar[nPlanes];
 
 		for (int i = 0; i < nPlanes; i++) {
-			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i], s);
+			landing[i] = VariableFactory.bounded("Landing " + i, windowStart[i], windowEnd[i]-minDuration[i], s);
 			duration[i] = VariableFactory.bounded("Duration on airport " + i, minDuration[i], maxDuration[i], s);
-			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i], windowEnd[i], s);
+			takeOff[i] = VariableFactory.bounded("Take off " + i, windowStart[i]+minDuration[i], windowEnd[i], s);
 			tracksByPlane[i] = VariableFactory.bounded("Tracks for plane " + i, 0, this.getnTracks() - 1, s);
-			activityPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
+			taskPlanes[i] = VariableFactory.task(landing[i], duration[i], takeOff[i]);
 			System.out.println("type of plane " + i + " :" + typePlane[i]);
 			System.out.println(this.landing[i]);
 			System.out.println(this.duration[i]);
@@ -284,9 +336,11 @@ public class AircraftLanding {
 		for (int i = 0; i < nPlanes; i++) {
 			for (int j = 0; j < nPlanes; j++) {
 				//version uniquement pour les fenetre fixes
-				if(i!=j && this.overLapping(landing[i],this.landing[j])){
+				if(i!=j && this.noOverLapping(landing[i],this.takeOff[j])){
 					Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
 					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+					cons = new Constraint[]{IntConstraintFactory.arithm(landing[j], "<=", landing[i]), IntConstraintFactory.arithm(takeOff[j], ">=", takeOff[i])};
+					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(0, s))));
 					
 				}		
 //				if (!(this.landing[i].getLB() > this.takeOff[j].getUB() || this.landing[j].getLB() > this.takeOff[i].getUB())) {
@@ -309,13 +363,8 @@ public class AircraftLanding {
 		}
 	}
 	
-	private boolean overLapping(IntVar x, IntVar y){
-		if(x.getLB() > y.getLB()){
-			IntVar temp = y;
-			y = x;
-			x = y;
-		}
-		return x.getUB() >= y.getLB();	
+	private boolean noOverLapping(IntVar landing, IntVar takeoff){
+		return landing.getLB() > takeoff.getUB();	
 	}
 
 	private void simpleCumulative(Solver s) {
@@ -329,7 +378,7 @@ public class AircraftLanding {
 						this.tracks[u][v], heightInCumulatives[v][u]));
 			}
 			//System.out.println();
-			s.post(IntConstraintFactory.cumulative(activityPlanes,
+			s.post(IntConstraintFactory.cumulative(taskPlanes,
 					ArrayUtils.getColumn(heightInCumulatives, u),
 					VariableFactory.fixed(this.getCapacity()[u], s)));
 		}
@@ -364,14 +413,14 @@ public class AircraftLanding {
 			}
 		}
 
-		int[][] successors = new int[this.activityPlanes.length][0];
+		int[][] successors = new int[this.taskPlanes.length][0];
 
 		vCapacities = new IntVar[this.capacity.length];
 		for (int c = 0; c < this.capacity.length; c++) {
 			vCapacities[c] = VF.fixed(this.capacity[c], s);
 		}
 
-		int nbTasks = this.activityPlanes.length;
+		int nbTasks = this.taskPlanes.length;
 		int nbResources = vCapacities.length;
 
 		int[] resourceType = new int[nbResources];
@@ -385,7 +434,7 @@ public class AircraftLanding {
 		int nbInterestingTimePoints = interestingTimePoints.length;
 		int nbInterestingResources = interestingResources.length;
 
-		vLoads = new IntVar[nbInterestingTimePoints][nbInterestingResources];
+		IntVar[][] vLoads = new IntVar[nbInterestingTimePoints][nbInterestingResources];
 		for (int i = 0; i < nbInterestingTimePoints; i++) {
 			for (int j = 0; j < nbInterestingResources; j++) {
 				vLoads[i][j] = VariableFactory.bounded("load_"
@@ -411,6 +460,7 @@ public class AircraftLanding {
 			allVars[cIdx + r] = vCapacities[r];
 		}
 		int lIdx = cIdx + nbResources;
+
 		for (int i = 0; i < nbInterestingTimePoints; i++) {
 			for (int j = 0; j < nbInterestingResources; j++) {
 				allVars[lIdx + i * nbInterestingResources + j] = vLoads[i][j];
@@ -469,7 +519,7 @@ public class AircraftLanding {
 		
 		for (int t = 0; t < this.getnTracks(); t++) {
 			//on place les avions dans l'ordre d'atterrissage
-			HashMap<Integer, Integer> ordedPlaneOnTheTrack = new HashMap<Integer, Integer>(MAX_TIME);
+			HashMap<Integer, Integer> ordedPlaneOnTheTrack = new HashMap<Integer, Integer>(60*24);
 			for (int plane = 0; plane < nPlanes; plane++) {
 				if (this.tracks[t][plane].getValue() == 1) {
 					ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), plane);
