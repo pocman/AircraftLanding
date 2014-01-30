@@ -155,11 +155,11 @@ public class InstanceGenerator {
 			case GRAND:
 				//int nbTracksLarge = 5 + r.nextInt(3);
 
-				int nbTracksLarge = 30 + r.nextInt(20);
+				int nbTracksLarge = 50 + r.nextInt(20);
 
 				capacity = new int[nbTracksLarge];
 				for (int i = 0; i < nbTracksLarge; i++) {
-					capacity[i] = 5 + r.nextInt(5);
+					capacity[i] = 10 + r.nextInt(5);
 				}
 				//int nbPlanesLarge = 300 + r.nextInt(100);
 				int nbPlanesLarge = 800;
