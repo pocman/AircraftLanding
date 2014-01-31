@@ -358,7 +358,7 @@ public class AircraftLanding {
 		al.solve(timeOut);
 		al.prettyOutput();
 		try {
-			al.csvOutput("test");
+			al.csvOutput("Aerport");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
