@@ -348,7 +348,7 @@ public class AircraftLanding {
 			al = InstanceGenerator.defaultGenerator(multiCumulative);
 		else
 			al = InstanceGenerator.generator(taille, alea, fenetresFixes, multiCumulative);
-		Solver s = new Solver("aircraftLanding");
+		Solver s = new Solver("AircraftLanding");
 		if(al == null) {
 			System.out.println("No solution found !");
 			System.exit(0);
@@ -757,7 +757,7 @@ public class AircraftLanding {
 	}
 	
 	public void printSimpleIhm(String nameFile, ArrayList<String> toPrint) throws IOException{
-		System.out.println("Creating Ihm File");
+		System.out.println("Creating SimpleIhm File");
 		File file = new File(nameFile + ".txt");
 
 		// if file doesnt exists, then create it
