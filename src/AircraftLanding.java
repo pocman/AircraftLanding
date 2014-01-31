@@ -366,7 +366,9 @@ public class AircraftLanding {
 		try {
 			parseur = new ParseurEntree(new File("test.csv"));
 			OutPut out = new OutPut(parseur.getPlanes(),parseur.getPistes());
-			out.outputCSV();
+			if(al.nPlanes < 500) {
+				out.outputCSV();
+			}
 
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
