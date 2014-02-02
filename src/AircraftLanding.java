@@ -44,44 +44,44 @@ public class AircraftLanding {
 	 */
 	Task[] taskPlanes;
 	IntVar[] duration, landing, takeOff; //for each plane
-	
+
 	/*
 	 * Une matrice 0/1 de taille nTracks * nPlanes
 	 * qui donne la position des avions sur les pistes
 	 */
 	IntVar[][] tracks;
-	
+
 	/*
 	 * Les ressources occupeeees par chaque avion sur chaque piste
 	 * Matrice de taille nPlanes * nTracks
 	 */
 	IntVar[][] heightInCumulatives;
-	
+
 	/*
 	 * Le nombre d'avions par piste
 	 */
 	IntVar[] sumByTracks;
-	
+
 	/*
 	 * Le numeero de la piste sur laquelle est chaque avion
 	 */
 	IntVar[] tracksByPlane;
-	
+
 	/*
 	 * Si l'avion viole une contrainte de preeeceeedence ou non
 	 */
 	IntVar[] brokenConstraint;
-	
+
 	/*
 	 * Somme des avions qui violent une contrainte de preeeceeedence
 	 */
 	IntVar minBreak;
-	
+
 	/*
 	 * Variable repreeesentant la capaciteee d'une piste
 	 */
 	IntVar[] vCapacities;
-	
+
 	/*
 	 * Boolean speeecifiant si on utilise plusieurs contriantes cumulatives 
 	 * ou la contrainte cumulative multi d'Arnauld Letort
@@ -173,7 +173,7 @@ public class AircraftLanding {
 
 		System.out.println();
 		System.out.println("----------Model--------" + s.getName());
-		
+
 		this.s = s;
 		taskPlanes = new Task[nPlanes];
 		landing = new IntVar[nPlanes];
@@ -205,7 +205,7 @@ public class AircraftLanding {
 		System.out.println("Utilise un cassage de symetries");
 		this.symetrieBreaking(s);
 
-		
+
 		//Un avion ne peut etre que sur une seule piste
 		System.out.println("Unicite de positionnement de l'avion sur une piste");
 		for (int plane = 0; plane < nPlanes; plane++) {
@@ -219,12 +219,12 @@ public class AircraftLanding {
 			}
 		}
 
-		
+
 		//On ne peut pas avoir d'avions qui decollent ou atterissent la meme minute
 		//Si il y a trop d'avion, cette contrainte ne peu plus tenir, il faut changer de pas de temps ou mettre un alldiff par piste
 		System.out.println("Contrainte sur l'utilisation de la piste");
 		this.operationUniqueUniteTemps();
-		
+
 
 
 		//Contrainte souple de precedence entre les avions
@@ -242,7 +242,7 @@ public class AircraftLanding {
 		}
 
 	}
-	
+
 
 
 	public void solve(int timeOut) {
@@ -261,8 +261,8 @@ public class AircraftLanding {
 				IntStrategyFactory.inputOrder_InDomainMin(this.duration),
 				IntStrategyFactory.inputOrder_InDomainMin(this.landing),	
 				IntStrategyFactory.inputOrder_InDomainMin(this.tracksByPlane)
-				
-		));
+
+				));
 	}
 
 	public static void main(String[] args) {
@@ -316,7 +316,7 @@ public class AircraftLanding {
 		}
 		while (!(reponse.equals("y") || reponse.equals("n") || reponse.equals("") ));
 		boolean multiCumulative = reponse.equals("y");
-		
+
 		do {
 			System.out.println("Voulez-vous utiliser la contrainte de precedence? (Y/n)");
 			reponse = sc.nextLine();
@@ -366,9 +366,7 @@ public class AircraftLanding {
 		try {
 			parseur = new ParseurEntree(new File("test.csv"));
 			OutPut out = new OutPut(parseur.getPlanes(),parseur.getPistes());
-			if(al.nPlanes < 500) {
-				out.outputCSV();
-			}
+			out.outputCSV();
 
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
@@ -376,7 +374,7 @@ public class AircraftLanding {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Post la alldiff globale sur l'unicite des actions par pas de temps
 	 */
@@ -387,7 +385,7 @@ public class AircraftLanding {
 			s.post(IntConstraintFactory.alldifferent(this.landing, "BC"));
 			System.out.println("Le pas de temps est trop gros, passer en Seconde et non Minutes");
 		}
-		
+
 	}
 
 	/**
@@ -404,7 +402,7 @@ public class AircraftLanding {
 		}
 		return violation;
 	}
-	
+
 	/**
 	 * Post la contrainte de precedence
 	 * Pour le moment on ne compte que les avions qui violent une precedence et pas le nombre exacte de precedence violees
@@ -413,20 +411,20 @@ public class AircraftLanding {
 	 */
 	private void contraintePrecedence(Solver s, boolean precedence) {
 		if(precedence){
-		System.out.println("Utilise d'une contrainte de precedence");
-		brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
-		minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
-		for (int i = 0; i < nPlanes-1; i++) {
-			for (int j = i+1; j < nPlanes; j++) {
-				if(!this.noOverLapping(landing[i],this.takeOff[i], landing[j], takeOff[j])){
-					Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
-					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
-					cons = new Constraint[]{IntConstraintFactory.arithm(landing[j], "<=", landing[i]), IntConstraintFactory.arithm(takeOff[j], ">=", takeOff[i])};
-					s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(0, s))));
-				}		
+			System.out.println("Utilise d'une contrainte de precedence");
+			brokenConstraint = VariableFactory.boundedArray("broken constraint", nPlanes, 0, 1, s);
+			minBreak = VF.enumerated("breaker", 0, nPlanes*nPlanes, s);
+			for (int i = 0; i < nPlanes-1; i++) {
+				for (int j = i+1; j < nPlanes; j++) {
+					if(!this.noOverLapping(landing[i],this.takeOff[i], landing[j], takeOff[j])){
+						Constraint[] cons = new Constraint[]{IntConstraintFactory.arithm(landing[i], "<=", landing[j]), IntConstraintFactory.arithm(takeOff[i], ">=", takeOff[j])};
+						s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[i], "=", VariableFactory.fixed(0, s))));
+						cons = new Constraint[]{IntConstraintFactory.arithm(landing[j], "<=", landing[i]), IntConstraintFactory.arithm(takeOff[j], ">=", takeOff[i])};
+						s.post(LogicalConstraintFactory.ifThenElse(LogicalConstraintFactory.and(cons), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(1, s)), IntConstraintFactory.arithm(brokenConstraint[j], "=", VariableFactory.fixed(0, s))));
+					}		
+				}
 			}
-		}
-		s.post(ICF.sum(brokenConstraint, minBreak));
+			s.post(ICF.sum(brokenConstraint, minBreak));
 		}
 		else{
 			System.out.println("N'utilise PAS une contrainte de precedence");
@@ -434,7 +432,7 @@ public class AircraftLanding {
 			minBreak = VF.fixed(0, s);
 		}
 	}
-	
+
 	/**
 	 * Retourne si deux avions peuvent creer une violation de precedence
 	 * @param landing fenetre d'atterrisage de l'avion 1
@@ -533,8 +531,8 @@ public class AircraftLanding {
 
 		int hIdx = 3 * nbTasks;
 		IntVar[] allVars = new IntVar[hIdx + nbTasks * nbResources
-				+ nbResources + nbInterestingTimePoints
-				* nbInterestingResources];
+		                              + nbResources + nbInterestingTimePoints
+		                              * nbInterestingResources];
 		for (int t = 0; t < nbTasks; t++) {
 			allVars[t] = this.landing[t];
 			allVars[t + nbTasks] = this.duration[t];
@@ -618,22 +616,22 @@ public class AircraftLanding {
 
 		ArrayList<String> toPrint = new ArrayList<String>();
 		toPrint.add("Nombre de violations : " + this.violationPrecedence());
-		
+
 		System.out.println("Nombre de violations : " + this.violationPrecedence());
-		
+
 		//on place les avions dans l'ordre d'atterrissage
 		HashMap<Integer, ArrayList<Integer>> ordedPlaneOnTheTrack = new HashMap<Integer, ArrayList<Integer>>(60*24);
 		for (int t = 0; t < this.getnTracks(); t++) {
-		for (int plane = 0; plane < nPlanes; plane++) {
-			if (this.tracks[t][plane].getValue() == 1) {
-				if(!ordedPlaneOnTheTrack.containsKey(this.landing[plane].getValue()))
-					ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), new ArrayList<Integer>());
-				ordedPlaneOnTheTrack.get(this.landing[plane].getValue()).add(plane);					
+			for (int plane = 0; plane < nPlanes; plane++) {
+				if (this.tracks[t][plane].getValue() == 1) {
+					if(!ordedPlaneOnTheTrack.containsKey(this.landing[plane].getValue()))
+						ordedPlaneOnTheTrack.put(this.landing[plane].getValue(), new ArrayList<Integer>());
+					ordedPlaneOnTheTrack.get(this.landing[plane].getValue()).add(plane);					
 				}
 			}
 		}
-		
-		
+
+
 		//On genere l'ensemble des pas de temps d'interet pour chaque piste
 		HashMap<Integer, Integer> interrestingPoints = new HashMap<Integer, Integer>();
 		for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
@@ -647,7 +645,7 @@ public class AircraftLanding {
 				}
 			}
 		}
-		
+
 		for (int t = 0; t < this.getnTracks(); t++) {
 			//on place les avions dans l'ordre d'atterrissage
 			ordedPlaneOnTheTrack = new HashMap<Integer, ArrayList<Integer>>(60*24);
@@ -669,20 +667,20 @@ public class AircraftLanding {
 				for (int keyPlane : ordedPlaneOnTheTrack.keySet()) {
 					ArrayList<Integer> planes = ordedPlaneOnTheTrack.get(keyPlane);
 					for(int plane : planes){
-					if (this.landing[plane].getValue() == keyPoints) {
-						justLanded += this.typePlane[plane];
+						if (this.landing[plane].getValue() == keyPoints) {
+							justLanded += this.typePlane[plane];
 
-					}
-					if (this.takeOff[plane].getValue() == keyPoints) {
-						justTookOff += this.typePlane[plane];
-					}
+						}
+						if (this.takeOff[plane].getValue() == keyPoints) {
+							justTookOff += this.typePlane[plane];
+						}
 					}
 
 				}
 				previousValue = previousValue + justLanded - justTookOff;
 				interrestingPoints.put(keyPoints, previousValue);
 			}
-			
+
 			toPrint.add("");
 			System.out.println("");
 			toPrint.add("load of track Number " + t + " of size " + this.capacity[t] + " : ");
@@ -699,7 +697,7 @@ public class AircraftLanding {
 			s.replace("  ", " ");
 			System.out.println(s);
 		}
-		
+
 		try {
 			this.printSimpleIhm("simpleIhm", toPrint);
 		} catch (IOException e) {
@@ -757,7 +755,7 @@ public class AircraftLanding {
 		}
 		bw.close();
 	}
-	
+
 	public void printSimpleIhm(String nameFile, ArrayList<String> toPrint) throws IOException{
 		System.out.println("Creating SimpleIhm File");
 		File file = new File(nameFile + ".txt");

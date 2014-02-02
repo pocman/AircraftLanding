@@ -1,23 +1,20 @@
 package display;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List; 
 
-import jxl.Workbook;
-import jxl.format.Colour;
-import jxl.format.ScriptStyle;
-import jxl.format.UnderlineStyle;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
-
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class OutPut {
 
@@ -63,7 +60,7 @@ public class OutPut {
 				System.out.println("========"+Representation.TRACK_SEPARATION);
 				System.out.println();
 				System.out.println();
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			}
 			heure = triDepart.get(i).getHeureDepart();
 			if(heure%60<10) System.out.println(heure/60+"h0"+heure%60);
@@ -86,7 +83,7 @@ public class OutPut {
 			System.out.println("========"+Representation.TRACK_SEPARATION);
 			System.out.println();
 			System.out.println();
-			Thread.sleep(1000);
+			Thread.sleep(100);
 		}
 	}
 
@@ -109,10 +106,10 @@ public class OutPut {
 				indexLigne = 1;
 				heure = triArrivee.get(j).getHeureArrivee();
 				int capacite = 0;
-				if((heure%60)<10) lignes[0] += heure/60+"h0"+heure%60+separation;
+				if(heure%60<10) lignes[0] += heure/60+"h0"+heure%60+separation;
 				else lignes[0] += heure/60+"h"+heure%60+separation;
 				for(int k = 0; k<pistes.size(); k++){
-					lignes[indexLigne] += "/////////////"+separation;
+					lignes[indexLigne] += "///////////"+separation;
 					indexLigne++;
 					capacite = 0; 
 					for(Avion avion : pistes.get(k).getPresents()){
@@ -137,12 +134,12 @@ public class OutPut {
 						pistes.get(k).getPresents().add(triArrivee.get(j));
 					}
 					while(capacite<pistes.get(k).getCapacite()){
-						lignes[indexLigne + capacite] += ""+separation;
+						lignes[indexLigne + capacite] += "   "+separation;
 						capacite++;
 					}
 					indexLigne+=pistes.get(k).getCapacite();
 				}
-				lignes[indexLigne] += "/////////////"+separation;
+				lignes[indexLigne] += "///////////"+separation;
 				j++;
 			}
 			indexLigne = 1;
@@ -150,65 +147,98 @@ public class OutPut {
 			if((int)(heure%60)<10) lignes[0] += heure/60+"h0"+heure%60+separation;
 			else lignes[0] += heure/60+"h"+heure%60+separation;
 			for(int k = 0; k<pistes.size(); k++){
-				lignes[indexLigne] += "/////////////"+separation;
+				lignes[indexLigne] += "///////////"+separation;
 				indexLigne++;
+				int capacite = 0; 
+
 				if(k == triDepart.get(i).getIdPiste()){
 					switch(triDepart.get(i).getCapacite()){
-					case(1) : lignes[indexLigne] += triDepart.get(i).getIdAvion()+" taking off"+separation; break;
-					case(2) : lignes[indexLigne] += triDepart.get(i).getIdAvion()+" taking off"+separation;
-					lignes[indexLigne+1] += triDepart.get(i).getIdAvion()+" taking off"+separation; break;
-					case(3) : lignes[indexLigne] += triDepart.get(i).getIdAvion()+" taking off"+separation;
-					lignes[indexLigne+1] += triDepart.get(i).getIdAvion()+" taking off"+separation;
-					lignes[indexLigne+2] += triDepart.get(i).getIdAvion()+" taking off"+separation; break;
+					case(1) : lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++; break;
+					case(2) : lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++;
+					lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++; break;
+					case(3) : lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++;
+					lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++;
+					lignes[indexLigne+capacite] += triDepart.get(i).getIdAvion()+" taking off"+separation; capacite++; break;
 					}
 					pistes.get(k).getPresents().remove(triDepart.get(i));
 				}
+				for(Avion avion : pistes.get(k).getPresents()){
+					switch(avion.getCapacite()){
+					case(1) : lignes[indexLigne+capacite] += avion.getIdAvion()+" waiting"+separation; capacite++; break;
+					case(2) : lignes[indexLigne+capacite] += avion.getIdAvion()+" waiting"+separation; capacite++; 
+					lignes[indexLigne+capacite] += avion.getIdAvion()+" waiting"+separation; capacite++;  break;
+					case(3) : lignes[indexLigne+capacite] += avion.getIdAvion()+" waiting"+separation; capacite++; 
+					lignes[indexLigne+ capacite] += avion.getIdAvion()+" waiting"+separation; capacite++; 
+					lignes[indexLigne+ capacite] += avion.getIdAvion()+" waiting"+separation; capacite++;  break;
+					}
+				}
+				while(capacite<pistes.get(k).getCapacite()){
+					lignes[indexLigne + capacite] += "   "+separation;
+					capacite++;
+				}
 				indexLigne+=pistes.get(k).getCapacite();
 			}
-			lignes[indexLigne] += "/////////////"+separation;
+			lignes[indexLigne] += "///////////"+separation;
 
 		}
-		try { 
-			WritableWorkbook workbook = Workbook.createWorkbook(new File("aeroport.xls")); 
-			WritableSheet sheet = workbook.createSheet("Premier classeur", 0); 
-			WritableFont landing = new WritableFont(WritableFont.ARIAL, 10,WritableFont.NO_BOLD, true, UnderlineStyle.NO_UNDERLINE,Colour.GREEN, ScriptStyle.NORMAL_SCRIPT); 
-			WritableFont waiting = new WritableFont(WritableFont.ARIAL, 10,WritableFont.NO_BOLD, true, UnderlineStyle.NO_UNDERLINE,Colour.RED, ScriptStyle.NORMAL_SCRIPT); 
-			WritableFont takingOff = new WritableFont(WritableFont.ARIAL, 10,WritableFont.NO_BOLD, true, UnderlineStyle.NO_UNDERLINE,Colour.BLUE, ScriptStyle.NORMAL_SCRIPT); 
 
-			WritableCellFormat landingFormat = new WritableCellFormat(landing); 
-			WritableCellFormat waitingFormat = new WritableCellFormat(waiting); 
-			WritableCellFormat takingOffFormat = new WritableCellFormat(takingOff); 
+		String excelFileName = "aeroport.xlsx";//name of excel file
 
-			for(int i = 0; i<lignes.length; i++){
-				String[] cellules = lignes[i].split(separation);
-				for(int k = 0; k<cellules.length; k++){
-					String cellule = cellules[k];
-					Label  label; 
-					if(cellule.contains("landing"))  label = new Label(k, i, cellule, landingFormat);
-					else if(cellule.contains("waiting")) label = new Label(k, i, cellule, waitingFormat);
-					else if(cellule.contains("taking off"))label = new Label(k, i, cellule, takingOffFormat);
-					else label = new Label(k,i,cellule);
-					sheet.addCell(label); 
+		String sheetName = "Airport";//name of sheet
+
+		XSSFWorkbook wb = new XSSFWorkbook();
+		XSSFSheet sheet = wb.createSheet(sheetName) ;
+		
+		XSSFCellStyle landingStyle = wb.createCellStyle();
+		XSSFCellStyle waitingingStyle = wb.createCellStyle();
+		XSSFCellStyle takingOffStyle = wb.createCellStyle();
+		
+		Font landing = wb.createFont();
+		landing.setColor(IndexedColors.GREEN.getIndex());
+		landingStyle.setFont(landing);
+		
+		Font waiting = wb.createFont();
+		waiting.setColor(IndexedColors.RED.getIndex());
+		waitingingStyle.setFont(waiting);
+		
+		Font takingOff = wb.createFont();
+		takingOff.setColor(IndexedColors.BLUE.getIndex());
+		takingOffStyle.setFont(takingOff);
+
+		for(int i = 0; i<lignes.length; i++){
+			XSSFRow row = sheet.createRow(i);
+			String[] cellules = lignes[i].split(separation);
+			for(int k = 0; k<cellules.length; k++){
+				String cellule = cellules[k];
+				XSSFCell cell = row.createCell(k);
+				cell.setCellValue(cellule);
+				if(cellule.contains("waiting")){
+					cell.setCellStyle(waitingingStyle);
+				}
+				else {
+					if(cellule.contains("taking off")){
+						cell.setCellStyle(takingOffStyle);
+					}
+					else {
+						if(cellule.contains("landing")){
+							cell.setCellStyle(landingStyle);
+						}
+					}
 				}
 			}
-			workbook.write(); 
-			workbook.close(); 
-		} catch (RowsExceededException e1) { 
-			e1.printStackTrace(); 
-		} catch (IOException e) { 
-			e.printStackTrace(); 
-		} catch (WriteException e) {
-			e.printStackTrace();
-		}finally{ 
-			System.out.println("Creating XLS File"); 
 		}
-	}
 
+		FileOutputStream fileOut = new FileOutputStream(excelFileName);
+
+		wb.write(fileOut);
+		fileOut.flush();
+		fileOut.close();
+
+	}
 
 	public static void main(String[] args) throws NumberFormatException, IOException, InterruptedException{
 		ParseurEntree parseur = new ParseurEntree(new File("test.csv"));
 		OutPut out = new OutPut(parseur.getPlanes(),parseur.getPistes());
 		out.outputCSV();
 	}
-
 }
